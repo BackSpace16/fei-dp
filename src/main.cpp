@@ -1,4 +1,5 @@
 #include <main.hpp>
+#include "shapes.cpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -51,80 +52,19 @@ int main(void) {
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[] = {
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f,
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        1, 2, 3,
-
-        4, 5, 6,
-        5, 6, 7,
-
-        6, 7, 2,
-        7, 2, 3,
-
-        4, 5, 0,
-        5, 0, 1,
-
-        5, 1, 7,
-        1, 7, 3,
-
-        4, 0, 6,
-        0, 6, 2
-    };
-
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    GLuint VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 8 * 7 * sizeof(float), positions, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (GLvoid*)(3 * sizeof(GLfloat)));
-
-    unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 3 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-    glBindVertexArray(0);
-
-    ShaderProgramSource source = parseShader("../../res/basic.shader");
+    ShaderProgramSource source = parseShader("../../res/color.shader");
     GLuint shader = createShader(source.vertexSource, source.fragmentSource);
-
-    //int location = glGetUniformLocation(shader, "u_Color");
-    //glUniform4f(location, 0.2f, 0.8f, 0.4f, 1.0f);
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(errorOccurredGL, NULL);
 
+    Cube c(1.0f);
+    Cube d(1.0f);
+    Cube e(0.4f);
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Legacy OpenGL test //
-        /*
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f(0.0f, 0.5f);
-        glVertex2f(0.5f, -0.5f);
-        glEnd(); 
-        */
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -148,10 +88,22 @@ int main(void) {
         GLint projectionLoc = glGetUniformLocation(shader, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        GLint colorLoc = glGetUniformLocation(shader, "out_color");
+        glUniform4f(colorLoc, 1.0f, 0.0f, 0.0f, 0.0f);
 
-        glBindVertexArray(0);
+        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+
+        c.draw();
+        
+        model = glm::translate(model, glm::vec3(-1.5f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform4f(colorLoc, 0.0f, 1.0f, 0.0f, 0.0f);
+        d.draw();
+
+        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform4f(colorLoc, 0.0f, 0.0f, 1.0f, 0.0f);
+        e.draw();
 
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 

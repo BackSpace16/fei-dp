@@ -1,0 +1,163 @@
+#include <main.hpp>
+
+#include <glm/glm.hpp>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <vector>
+#include <array>
+#include <span>
+#include <optional>
+
+struct Vertex {
+    glm::vec3 position;
+    glm::vec3 normal;
+
+    Vertex(const glm::vec3& pos, const glm::vec3& norm)
+        : position{pos}, normal{norm} {}
+};
+
+struct Triangle {
+    std::array<Vertex, 3> vertices;
+
+    Triangle(const std::array<glm::vec3, 3>& positions, const glm::vec3& normal)
+        : vertices{ Vertex(positions[0], normal), Vertex(positions[1], normal), Vertex(positions[2], normal) } {}
+};
+
+class Shape {
+    public:
+        std::vector<Triangle> triangles;
+
+        GLuint VAO;
+        GLuint VBO;
+
+        void createShape() {
+            glGenVertexArrays(1, &VAO);
+            glBindVertexArray(VAO);
+
+            glGenBuffers(1, &VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+            std::vector<Vertex> vertexData;
+            for (const Triangle& triangle : triangles) {
+                for (const Vertex& vertex : triangle.vertices) {
+                    vertexData.push_back(vertex);
+                }
+            }
+            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
+            glBindVertexArray(0);
+        }
+
+        void draw() {
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+            glBindVertexArray(0);
+        }
+
+        void addTriangle(const std::array<glm::vec3,3>& positions) {
+            glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
+            triangles.emplace_back(positions, normal);
+        }
+
+        void addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices) {
+            for (const auto& triangle : indices)
+                addTriangle({ vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]] });
+        }
+};
+
+class Cube : public Shape {
+    public:
+        Cube(float size) {
+            float halfsize = size / 2;
+
+            std::array<glm::vec3,8> vertices{ 
+                glm::vec3(-halfsize, -halfsize, -halfsize),
+                glm::vec3(-halfsize,  halfsize, -halfsize),
+                glm::vec3( halfsize, -halfsize, -halfsize),
+                glm::vec3( halfsize,  halfsize, -halfsize),
+
+                glm::vec3(-halfsize, -halfsize,  halfsize),
+                glm::vec3(-halfsize,  halfsize,  halfsize),
+                glm::vec3( halfsize, -halfsize,  halfsize),
+                glm::vec3( halfsize,  halfsize,  halfsize)
+            };
+
+            std::array<std::array<unsigned int,3>,12> indices{{
+                {0, 1, 2},
+                {1, 2, 3},
+                {4, 5, 6},
+                {5, 6, 7},
+                {6, 7, 2},
+                {7, 2, 3},
+                {4, 5, 0},
+                {5, 0, 1},
+                {5, 1, 7},
+                {1, 7, 3},
+                {4, 0, 6},
+                {0, 6, 2}
+            }};
+
+            addGeometry(vertices, indices);
+            createShape();
+        }
+};
+
+/*
+class Icosahedron : public Shape {
+    private:
+        const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
+        const float V_ANGLE = atanf(1.0f / 2);  // elevation = 26.565 degree
+
+    public:
+        Icosahedron(float radius) {
+            addVertexAt( 0, 0, radius);
+
+            // compute 10 vertices at 1st and 2nd rows
+            int i1, i2;
+            float z, xy;
+            float hAngle = -M_PI / 2 - H_ANGLE / 2;     // start from -126 deg at 1st row
+            for(int i = 1; i <= 5; ++i) {
+                z  = radius * sinf(V_ANGLE);            // elevaton
+                xy = radius * cosf(V_ANGLE);            // length on XY plane
+
+                addVertexAt(xy * cosf(hAngle), xy * sinf(hAngle), z);
+
+                // next horizontal angles
+                hAngle += H_ANGLE;
+            }
+
+            hAngle = -M_PI / 2;
+            for(int i = 1; i <= 5; ++i) {
+                z  = radius * sinf(V_ANGLE);            // elevaton
+                xy = radius * cosf(V_ANGLE);            // length on XY plane
+                
+                addVertexAt(xy * cosf(hAngle), xy * sinf(hAngle), -z);
+
+                hAngle += H_ANGLE;
+            }
+
+            addVertexAt( 0, 0, -radius);
+
+            for(int i = 1; i < 5; ++i) {
+                addTriangle(0, i, i+1);
+                addTriangle(11, 11-i, 10-i);
+            }
+
+            addTriangle(0, 5, 1);
+            addTriangle(11, 6, 10);
+            for(int i = 1, j = 6; i < 5; ++i, ++j) {
+                addTriangle(i, i+1, j);
+                addTriangle(i+1, j, j+1);
+            }
+            
+            addTriangle(5, 1, 10);
+            addTriangle(10, 6, 1);
+        }
+};
+*/
