@@ -8,6 +8,8 @@
 #include <span>
 #include <optional>
 
+#include <iostream>
+
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -65,6 +67,11 @@ class Shape {
             triangles.emplace_back(positions, normal);
         }
 
+        void addTriangle(std::vector<Triangle>& triangleList, const std::array<glm::vec3,3>& positions) {
+            glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
+            triangleList.emplace_back(positions, normal);
+        }
+
         void addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices) {
             for (const auto& triangle : indices)
                 addTriangle({ vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]] });
@@ -116,8 +123,8 @@ class Icosahedron : public Shape {
     public:
         Icosahedron(float radius) {
             float z, xy;
-            float uAngle = -M_PI / 2 - H_ANGLE / 2;
-            float lAngle = -M_PI / 2;
+            float uAngle = -M_PI / 2 - H_ANGLE / 2;  // -126 deg (234 deg = 90 + 2*72 )
+            float lAngle = -M_PI / 2;               // -90 deg  (270 deg)
 
             glm::vec3 northPos{0,0,radius};
             glm::vec3 southPos{0,0,-radius};
@@ -141,6 +148,60 @@ class Icosahedron : public Shape {
                 uAngle += H_ANGLE;
                 lAngle += H_ANGLE;
             }
+
+            //createShape();
+        }
+};
+
+class Icosphere : public Icosahedron {
+    public:
+        Icosphere(float radius, unsigned int subdivision) : Icosahedron(radius) {
+            std::vector<Triangle> new_triangles;
+            for (Triangle& triangle : triangles) {
+
+                glm::vec3 c1 = (triangle.vertices[0].position + triangle.vertices[1].position) / 2.0f;
+                glm::vec3 c2 = (triangle.vertices[0].position + triangle.vertices[2].position) / 2.0f;
+                glm::vec3 c3 = (triangle.vertices[1].position + triangle.vertices[2].position) / 2.0f;
+
+                float r = glm::length(c1);
+                float theta = atan2(c1.y, c1.x); // Azimutálny uhol
+                float phi = acos(c1.z / r); // Polárny uhol
+                float x = radius * sin(phi) * cos(theta);
+                float y = radius * sin(phi) * sin(theta);
+                float z = radius * cos(phi);
+                c1 = glm::vec3{x,y,z};
+
+                r = glm::length(c2);
+                theta = atan2(c2.y, c2.x);
+                phi = acos(c2.z / r);
+                x = radius * sin(phi) * cos(theta);
+                y = radius * sin(phi) * sin(theta);
+                z = radius * cos(phi);
+                c2 = glm::vec3{x,y,z};
+
+                r = glm::length(c3);
+                theta = atan2(c3.y, c3.x);
+                phi = acos(c3.z / r);
+                x = radius * sin(phi) * cos(theta);
+                y = radius * sin(phi) * sin(theta);
+                z = radius * cos(phi);
+                c3 = glm::vec3{x,y,z};
+                
+                glm::vec3 e2 = triangle.vertices[1].position;
+                glm::vec3 e3 = triangle.vertices[2].position;
+
+                glm::vec3 normal = glm::normalize(glm::cross(c1 - triangle.vertices[0].position, c2 - triangle.vertices[0].position));
+
+                triangle.vertices[0].normal = normal;
+                triangle.vertices[1] = Vertex(c1, normal);
+                triangle.vertices[2] = Vertex(c2, normal);
+
+                addTriangle(new_triangles, {c1,c2,c3});
+                addTriangle(new_triangles, {c1,c3,e2});
+                addTriangle(new_triangles, {c2,e3,c3});
+                
+            }
+            triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
 
             createShape();
         }

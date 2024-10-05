@@ -66,7 +66,7 @@ int main(void) {
 
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
     Cube d(1.0f);
-    Icosahedron c(0.8f);
+    Icosphere c(0.8f, 2);
     Cube e(0.4f);
 
     while (!glfwWindowShouldClose(window)) {
@@ -75,21 +75,21 @@ int main(void) {
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
         
         glm::mat4 view = glm::mat4(1.0f);
         view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 5.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
+            glm::vec3(0.0f, 0.0f, 3.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
             glm::vec3(0.0f, 0.0f, 0.0f), // bod, na ktorý kamera pozerá
             glm::vec3(0.0f, 1.0f, 0.0f)  // smer nahor
         );
 
         float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
         glm::mat4 projection = glm::mat4(1.0f);
-        //projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        //projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
         
         glUseProgram(shadedShader);
         // Get matrix's uniform location and set matrix
