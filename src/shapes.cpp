@@ -154,6 +154,19 @@ class Icosahedron : public Shape {
 };
 
 class Icosphere : public Icosahedron {
+    private:
+        glm::vec3 updateRadius(const glm::vec3& position, const float radius) {
+            float r = glm::length(position);              // radius
+            float theta = atan2(position.y, position.x); // azimuthal angle
+            float phi = acos(position.z / r);           // polar angle
+
+            float x = radius * sin(phi) * cos(theta);
+            float y = radius * sin(phi) * sin(theta);
+            float z = radius * cos(phi);
+
+            return glm::vec3{x,y,z};
+        }
+
     public:
         Icosphere(float radius, unsigned int subdivision) : Icosahedron(radius) {
             std::vector<Triangle> new_triangles;
@@ -163,30 +176,10 @@ class Icosphere : public Icosahedron {
                 glm::vec3 c2 = (triangle.vertices[0].position + triangle.vertices[2].position) / 2.0f;
                 glm::vec3 c3 = (triangle.vertices[1].position + triangle.vertices[2].position) / 2.0f;
 
-                float r = glm::length(c1);
-                float theta = atan2(c1.y, c1.x); // Azimutálny uhol
-                float phi = acos(c1.z / r); // Polárny uhol
-                float x = radius * sin(phi) * cos(theta);
-                float y = radius * sin(phi) * sin(theta);
-                float z = radius * cos(phi);
-                c1 = glm::vec3{x,y,z};
+                c1 = updateRadius(c1, radius);
+                c2 = updateRadius(c2, radius);
+                c3 = updateRadius(c3, radius);
 
-                r = glm::length(c2);
-                theta = atan2(c2.y, c2.x);
-                phi = acos(c2.z / r);
-                x = radius * sin(phi) * cos(theta);
-                y = radius * sin(phi) * sin(theta);
-                z = radius * cos(phi);
-                c2 = glm::vec3{x,y,z};
-
-                r = glm::length(c3);
-                theta = atan2(c3.y, c3.x);
-                phi = acos(c3.z / r);
-                x = radius * sin(phi) * cos(theta);
-                y = radius * sin(phi) * sin(theta);
-                z = radius * cos(phi);
-                c3 = glm::vec3{x,y,z};
-                
                 glm::vec3 e2 = triangle.vertices[1].position;
                 glm::vec3 e3 = triangle.vertices[2].position;
 
