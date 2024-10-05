@@ -108,7 +108,6 @@ class Cube : public Shape {
         }
 };
 
-/*
 class Icosahedron : public Shape {
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
@@ -116,48 +115,33 @@ class Icosahedron : public Shape {
 
     public:
         Icosahedron(float radius) {
-            addVertexAt( 0, 0, radius);
-
-            // compute 10 vertices at 1st and 2nd rows
-            int i1, i2;
             float z, xy;
-            float hAngle = -M_PI / 2 - H_ANGLE / 2;     // start from -126 deg at 1st row
+            float uAngle = -M_PI / 2 - H_ANGLE / 2;
+            float lAngle = -M_PI / 2;
+
+            glm::vec3 northPos{0,0,radius};
+            glm::vec3 southPos{0,0,-radius};
+
             for(int i = 1; i <= 5; ++i) {
-                z  = radius * sinf(V_ANGLE);            // elevaton
-                xy = radius * cosf(V_ANGLE);            // length on XY plane
+                z  = radius * sinf(V_ANGLE);
+                xy = radius * cosf(V_ANGLE);
 
-                addVertexAt(xy * cosf(hAngle), xy * sinf(hAngle), z);
+                glm::vec3 upperFirstPos{xy * cosf(uAngle), xy * sinf(uAngle), z};
+                glm::vec3 upperSecondPos{xy * cosf(uAngle+H_ANGLE), xy * sinf(uAngle+H_ANGLE), z};
 
-                // next horizontal angles
-                hAngle += H_ANGLE;
-            }
-
-            hAngle = -M_PI / 2;
-            for(int i = 1; i <= 5; ++i) {
-                z  = radius * sinf(V_ANGLE);            // elevaton
-                xy = radius * cosf(V_ANGLE);            // length on XY plane
                 
-                addVertexAt(xy * cosf(hAngle), xy * sinf(hAngle), -z);
+                glm::vec3 lowerFirstPos{xy * cosf(lAngle), xy * sinf(lAngle), -z};
+                glm::vec3 lowerSecondPos{xy * cosf(lAngle+H_ANGLE), xy * sinf(lAngle+H_ANGLE), -z};
 
-                hAngle += H_ANGLE;
+                addTriangle({ northPos, upperFirstPos, upperSecondPos });
+                addTriangle({ upperFirstPos, upperSecondPos, lowerFirstPos });
+                addTriangle({ upperSecondPos, lowerFirstPos, lowerSecondPos });
+                addTriangle({ lowerFirstPos, southPos, lowerSecondPos });
+
+                uAngle += H_ANGLE;
+                lAngle += H_ANGLE;
             }
 
-            addVertexAt( 0, 0, -radius);
-
-            for(int i = 1; i < 5; ++i) {
-                addTriangle(0, i, i+1);
-                addTriangle(11, 11-i, 10-i);
-            }
-
-            addTriangle(0, 5, 1);
-            addTriangle(11, 6, 10);
-            for(int i = 1, j = 6; i < 5; ++i, ++j) {
-                addTriangle(i, i+1, j);
-                addTriangle(i+1, j, j+1);
-            }
-            
-            addTriangle(5, 1, 10);
-            addTriangle(10, 6, 1);
+            createShape();
         }
 };
-*/
