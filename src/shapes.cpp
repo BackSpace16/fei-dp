@@ -76,6 +76,21 @@ class Shape {
             for (const auto& triangle : indices)
                 addTriangle({ vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]] });
         }
+
+        float calcSize(Vertex vertex, Vertex vertex2) {
+            return sqrt(pow((vertex.position.x - vertex2.position.x),2)
+                   +pow((vertex.position.y - vertex2.position.y),2)
+                   +pow((vertex.position.z - vertex2.position.z),2));
+        }
+
+        void calcTriangles() {
+            for(Triangle& triangle : triangles) {
+                float a = calcSize(triangle.vertices[0], triangle.vertices[1]);
+                float b = calcSize(triangle.vertices[1], triangle.vertices[2]);
+                float c = calcSize(triangle.vertices[0], triangle.vertices[2]);
+                std::cout << a << ", " << b << ", " << c << ", " << std::endl;
+            }
+        }
 };
 
 class Cube : public Shape {
@@ -150,6 +165,7 @@ class Icosahedron : public Shape {
             }
 
             //createShape();
+            //calcTriangles();
         }
 };
 
@@ -189,42 +205,14 @@ class Icosphere : public Icosahedron {
                 triangle.vertices[1] = Vertex(c1, normal);
                 triangle.vertices[2] = Vertex(c2, normal);
 
-                addTriangle(new_triangles, {c1,c2,c3});
-                addTriangle(new_triangles, {c1,c3,e2});
-                addTriangle(new_triangles, {c2,e3,c3});
+                addTriangle(new_triangles, {c1,c3,c2});
+                addTriangle(new_triangles, {c1,e2,c3});
+                addTriangle(new_triangles, {c2,c3,e3});
                 
             }
             triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
 
             createShape();
-
-            for(Triangle& triangle : triangles) {
-                Vertex vertex = triangle.vertices[0];
-                Vertex vertex2 = triangle.vertices[1];
-                float a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
-                                +pow((vertex.position.y - vertex2.position.y),2)
-                                +pow((vertex.position.z - vertex2.position.z),2));
-
-                std::cout << a << ", ";
-
-                
-                vertex = triangle.vertices[1];
-                vertex2 = triangle.vertices[2];
-                a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
-                                +pow((vertex.position.y - vertex2.position.y),2)
-                                +pow((vertex.position.z - vertex2.position.z),2));
-                                
-                std::cout << a << ", ";
-
-                
-                vertex = triangle.vertices[0];
-                vertex2 = triangle.vertices[2];
-                a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
-                                +pow((vertex.position.y - vertex2.position.y),2)
-                                +pow((vertex.position.z - vertex2.position.z),2));
-                                
-                std::cout << a << "";
-                std::cout << std::endl;
-            }
+            //calcTriangles();
         }
 };
