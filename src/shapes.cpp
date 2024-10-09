@@ -197,5 +197,34 @@ class Icosphere : public Icosahedron {
             triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
 
             createShape();
+
+            for(Triangle& triangle : triangles) {
+                Vertex vertex = triangle.vertices[0];
+                Vertex vertex2 = triangle.vertices[1];
+                float a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
+                                +pow((vertex.position.y - vertex2.position.y),2)
+                                +pow((vertex.position.z - vertex2.position.z),2));
+
+                std::cout << a << ", ";
+
+                
+                vertex = triangle.vertices[1];
+                vertex2 = triangle.vertices[2];
+                a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
+                                +pow((vertex.position.y - vertex2.position.y),2)
+                                +pow((vertex.position.z - vertex2.position.z),2));
+                                
+                std::cout << a << ", ";
+
+                
+                vertex = triangle.vertices[0];
+                vertex2 = triangle.vertices[2];
+                a = sqrt(pow((vertex.position.x - vertex2.position.x),2)
+                                +pow((vertex.position.y - vertex2.position.y),2)
+                                +pow((vertex.position.z - vertex2.position.z),2));
+                                
+                std::cout << a << "";
+                std::cout << std::endl;
+            }
         }
 };
