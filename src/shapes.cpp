@@ -25,7 +25,7 @@ struct Triangle {
         : vertices{ Vertex(positions[0], normal), Vertex(positions[1], normal), Vertex(positions[2], normal) } {}
 };
 
-class Shape {
+class Mesh {
     public:
         std::vector<Triangle> triangles;
 
@@ -93,7 +93,14 @@ class Shape {
         }
 };
 
-class Cube : public Shape {
+class Object {
+    public:
+        Mesh mesh;
+
+        // TODO object class, transformation matrices, draw using shader
+};
+
+class Cube : public Mesh {
     public:
         Cube(float size) {
             float halfsize = size / 2;
@@ -130,7 +137,7 @@ class Cube : public Shape {
         }
 };
 
-class Icosahedron : public Shape {
+class Icosahedron : public Mesh {
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
         const float V_ANGLE = atanf(1.0f / 2);  // elevation = 26.565 degree

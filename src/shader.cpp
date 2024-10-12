@@ -1,5 +1,10 @@
 #include <main.hpp>
 
+class Shader {
+    public:
+        // TODO shader class, uniforms
+};
+
 ShaderProgramSource parseShader(const std::string& filePath) {
     enum class ShaderType {
         NONE = -1,
