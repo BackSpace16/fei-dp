@@ -2,6 +2,38 @@
 #include "shapes.cpp"
 #include <iostream>
 
+class Camera {
+    public:
+        glm::mat4 viewMatrix;
+        glm::mat4 projectionMatrix;
+
+        Camera() {
+            viewMatrix = glm::mat4(1.0f);
+            glm::vec3 position{0.0f, 0.0f, 5.0f};
+            glm::vec3 target{0.0f, 0.0f, 0.0f};
+            glm::vec3 up{0.0f, 1.0f, 0.0f};
+
+            viewMatrix = glm::lookAt(
+                position,        // pozícia kamery (pohľad z osi Z smerom k scéne)
+                target,         // bod, na ktorý kamera pozerá
+                up             // smer nahor
+            );
+
+            float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+            projectionMatrix = glm::mat4(1.0f);
+            projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+            //projectionMatrix = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+            
+        }
+
+        void set(Shader& shader) {
+            shader.setUniformMat4("view", viewMatrix);
+            shader.setUniformMat4("projection", projectionMatrix);
+        }
+        
+    // TODO camera movement, camera light
+};
+
 class Object {
     public:
         Mesh mesh;
