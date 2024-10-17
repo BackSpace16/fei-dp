@@ -14,7 +14,7 @@ void main()
 {
    gl_Position = projection * view * model * position;
    FragPos = vec3(model * position);
-   Normal = normal;
+   Normal = vec3(mat3(model) * normal);
 }
 
 #shader fragment
@@ -31,7 +31,7 @@ uniform vec3 objectColor;
 void main()
 {
     // Ambient
-    float ambientStrength = 0.5f;
+    float ambientStrength = 0.3f;
     vec3 ambient = ambientStrength * lightColor;
 
     // Diffuse 
