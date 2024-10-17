@@ -32,36 +32,14 @@ class Mesh {
         GLuint VAO;
         GLuint VBO;
 
-        void createShape() {
-            glGenVertexArrays(1, &VAO);
-            glBindVertexArray(VAO);
-
-            glGenBuffers(1, &VBO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-            std::vector<Vertex> vertexData;
-            for (const Triangle& triangle : triangles) {
-                for (const Vertex& vertex : triangle.vertices) {
-                    vertexData.push_back(vertex);
-                }
-            }
-            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-            glEnableVertexAttribArray(1);
-
-            glBindVertexArray(0);
-        }
-
         void draw() {
+            loadBufferData();
             glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
             glBindVertexArray(0);
         }
 
+    protected:
         void addTriangle(const std::array<glm::vec3,3>& positions) {
             glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
             triangles.emplace_back(positions, normal);
@@ -91,13 +69,31 @@ class Mesh {
                 std::cout << a << ", " << b << ", " << c << ", " << std::endl;
             }
         }
-};
 
-class Object {
-    public:
-        Mesh mesh;
+    private:
+        void loadBufferData() {
+            glGenVertexArrays(1, &VAO);
+            glBindVertexArray(VAO);
 
-        // TODO object class, transformation matrices, draw using shader
+            glGenBuffers(1, &VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+            std::vector<Vertex> vertexData;
+            for (const Triangle& triangle : triangles) {
+                for (const Vertex& vertex : triangle.vertices) {
+                    vertexData.push_back(vertex);
+                }
+            }
+            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
+            glBindVertexArray(0);
+        }
 };
 
 class Cube : public Mesh {
@@ -118,22 +114,21 @@ class Cube : public Mesh {
             };
 
             std::array<std::array<unsigned int,3>,12> indices{{
-                {2, 1, 0},
-                {1, 2, 3},
+                {1, 2, 0},
+                {2, 1, 3},
                 {6, 5, 4},
                 {5, 6, 7},
                 {2, 7, 6},
                 {7, 2, 3},
-                {0, 5, 4},
-                {5, 0, 1},
+                {5, 0, 4},
+                {0, 5, 1},
                 {7, 1, 5},
                 {1, 7, 3},
-                {6, 0, 4},
-                {0, 6, 2}
+                {0, 6, 4},
+                {6, 0, 2}
             }};
 
             addGeometry(vertices, indices);
-            createShape();
         }
 };
 
@@ -144,6 +139,13 @@ class Icosahedron : public Mesh {
 
     public:
         Icosahedron(float radius) {
+            createGeometry(radius);
+            
+            //calcTriangles();
+        }
+
+    private:
+        void createGeometry(float radius) {
             float z, xy;
             float uAngle = -M_PI / 2 - H_ANGLE / 2;  // -126 deg (234 deg = 90 + 2*72 )
             float lAngle = -M_PI / 2;               // -90 deg  (270 deg)
@@ -158,21 +160,17 @@ class Icosahedron : public Mesh {
                 glm::vec3 upperFirstPos{xy * cosf(uAngle), xy * sinf(uAngle), z};
                 glm::vec3 upperSecondPos{xy * cosf(uAngle+H_ANGLE), xy * sinf(uAngle+H_ANGLE), z};
 
-                
                 glm::vec3 lowerFirstPos{xy * cosf(lAngle), xy * sinf(lAngle), -z};
                 glm::vec3 lowerSecondPos{xy * cosf(lAngle+H_ANGLE), xy * sinf(lAngle+H_ANGLE), -z};
 
                 addTriangle({ northPos, upperFirstPos, upperSecondPos });
-                addTriangle({ upperFirstPos, upperSecondPos, lowerFirstPos });
+                addTriangle({ upperFirstPos, lowerFirstPos, upperSecondPos });
                 addTriangle({ upperSecondPos, lowerFirstPos, lowerSecondPos });
                 addTriangle({ lowerFirstPos, southPos, lowerSecondPos });
 
                 uAngle += H_ANGLE;
                 lAngle += H_ANGLE;
             }
-
-            //createShape();
-            //calcTriangles();
         }
 };
 
@@ -180,18 +178,24 @@ class Icosphere : public Icosahedron {
     private:
         glm::vec3 updateRadius(const glm::vec3& position, const float radius) {
             float r = glm::length(position);              // radius
-            float theta = atan2(position.y, position.x); // azimuthal angle
-            float phi = acos(position.z / r);           // polar angle
+            float phi = atan2(position.y, position.x);   // azimuthal angle
+            float theta  = acos(position.z / r);        // polar angle
 
-            float x = radius * sin(phi) * cos(theta);
-            float y = radius * sin(phi) * sin(theta);
-            float z = radius * cos(phi);
+            float x = radius * sin(theta) * cos(phi);
+            float y = radius * sin(theta) * sin(phi);
+            float z = radius * cos(theta);
 
             return glm::vec3{x,y,z};
         }
 
     public:
         Icosphere(float radius, unsigned int subdivision) : Icosahedron(radius) {
+            subdivideTriangles(radius, subdivision);
+            //calcTriangles();
+        }
+
+    private:
+        void subdivideTriangles(float radius, unsigned int subdivision) {
             std::vector<Triangle> new_triangles;
             for (Triangle& triangle : triangles) {
 
@@ -218,8 +222,5 @@ class Icosphere : public Icosahedron {
                 
             }
             triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
-
-            createShape();
-            //calcTriangles();
         }
 };
