@@ -1,3 +1,4 @@
+#pragma once
 #include <main.hpp>
 
 #include <glm/glm.hpp>
@@ -33,9 +34,32 @@ class Mesh {
         GLuint VBO;
 
         void draw() {
-            loadBufferData();
             glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+            glBindVertexArray(0);
+        }
+
+        void loadBufferData() {
+            glGenVertexArrays(1, &VAO);
+            glBindVertexArray(VAO);
+
+            glGenBuffers(1, &VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+            std::vector<Vertex> vertexData;
+            for (const Triangle& triangle : triangles) {
+                for (const Vertex& vertex : triangle.vertices) {
+                    vertexData.push_back(vertex);
+                }
+            }
+            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
             glBindVertexArray(0);
         }
 
@@ -68,31 +92,6 @@ class Mesh {
                 float c = calcSize(triangle.vertices[0], triangle.vertices[2]);
                 std::cout << a << ", " << b << ", " << c << ", " << std::endl;
             }
-        }
-
-    private:
-        void loadBufferData() {
-            glGenVertexArrays(1, &VAO);
-            glBindVertexArray(VAO);
-
-            glGenBuffers(1, &VBO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-            std::vector<Vertex> vertexData;
-            for (const Triangle& triangle : triangles) {
-                for (const Vertex& vertex : triangle.vertices) {
-                    vertexData.push_back(vertex);
-                }
-            }
-            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-            glEnableVertexAttribArray(1);
-
-            glBindVertexArray(0);
         }
 };
 

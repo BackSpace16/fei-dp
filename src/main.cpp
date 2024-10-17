@@ -1,8 +1,8 @@
 #include <main.hpp>
 #include "shapes.cpp"
+#include "object.cpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -60,55 +60,62 @@ int main(void) {
     glDebugMessageCallback(errorOccurredGL, NULL);
 
     glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
-    Icosahedron d(1.0f);
-    Icosphere c(0.8f, 2);
-    Cube e(0.2f);
+    //Icosahedron d(1.0f);
 
+    Object b(Icosahedron(1.0f),
+           glm::vec3(1.0f, 0.0f, 0.0f), 
+           glm::vec3(0.0f, 0.0f, 0.0f), 
+           glm::vec3(1.0f, 1.0f, 1.0f), 
+           glm::vec3(0.0f, 1.0f, 0.0f));
+
+    Object a(Icosphere(0.8f, 2),
+           glm::vec3(-1.0f, 0.0f, 0.0f), 
+           glm::vec3(0.0f, 0.0f, 0.0f), 
+           glm::vec3(1.0f, 1.0f, 1.0f), 
+           glm::vec3(0.0f, 1.0f, 1.0f));
+
+    b.mesh.loadBufferData();
+    a.mesh.loadBufferData();
+
+    //Cube e(0.2f);
+    //e.loadBufferData();
+        
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::lookAt(
+        glm::vec3(0.0f, 0.0f, 5.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
+        glm::vec3(0.0f, 0.0f, 0.0f), // bod, na ktorý kamera pozerá
+        glm::vec3(0.0f, 1.0f, 0.0f)  // smer nahor
+    );
+
+    float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+    glm::mat4 projection = glm::mat4(1.0f);
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    //projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+    
+    shadedShader.setUniformMat4("view", view);
+    shadedShader.setUniformMat4("projection", projection);
+    shadedShader.setUniformVec3("lightPos", lightPos);
+    shadedShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    
+    //lamp
+    /*
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, lightPos);
+    lampShader.setUniformMat4("model", model);
+    lampShader.setUniformMat4("view", view);
+    lampShader.setUniformMat4("projection", projection);
+    */
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        //model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        //model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f)); // //
-        model = glm::scale(model, glm::vec3(1, 1, 1));
+        a.changeRotation(sin((float)glfwGetTime()));
+        a.draw(shadedShader);
         
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 5.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
-            glm::vec3(0.0f, 0.0f, 0.0f), // bod, na ktorý kamera pozerá
-            glm::vec3(0.0f, 1.0f, 0.0f)  // smer nahor
-        );
+        b.changeRotation(-(float)glfwGetTime());
+        b.draw(shadedShader);
 
-        float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-        glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        //projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
-        
-        shadedShader.setUniformMat4("model", model);
-        shadedShader.setUniformMat4("view", view);
-        shadedShader.setUniformMat4("projection", projection);
-
-        shadedShader.setUniformVec3("lightPos", lightPos);
-        shadedShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        shadedShader.setUniformVec3("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
-
-        c.draw();
-        
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-        shadedShader.setUniformVec3("objectColor", glm::vec3(0.0f, 1.0f, 0.0f));
-        shadedShader.setUniformMat4("model", model);
-        d.draw();
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-
-        lampShader.setUniformMat4("model", model);
-        lampShader.setUniformMat4("view", view);
-        lampShader.setUniformMat4("projection", projection);
-
-        e.draw();
+        //e.draw();
 
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
