@@ -52,22 +52,17 @@ int main(void) {
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    ShaderProgramSource source = parseShader("../../res/color.shader");
-    GLuint shader = createShader(source.vertexSource, source.fragmentSource);
-
-    ShaderProgramSource lampSource = parseShader("../../res/lamp.shader");
-    GLuint lampShader = createShader(lampSource.vertexSource, lampSource.fragmentSource);
-
-    ShaderProgramSource shadedSource = parseShader("../../res/shaded.shader");
-    GLuint shadedShader = createShader(shadedSource.vertexSource, shadedSource.fragmentSource);
+    Shader colorShader{"../../res/color.shader", {"model", "view", "projection", "out_color"}};
+    Shader lampShader{"../../res/lamp.shader", {"model", "view", "projection"}};
+    Shader shadedShader{"../../res/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(errorOccurredGL, NULL);
 
-    glm::vec3 lightPos(2.0f, 2.0f, -3.0f);
-    Cube d(1.0f);
+    glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
+    Icosahedron d(1.0f);
     Icosphere c(0.8f, 2);
-    Cube e(0.4f);
+    Cube e(0.2f);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -75,73 +70,44 @@ int main(void) {
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        //model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        //model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f)); // //
         model = glm::scale(model, glm::vec3(1, 1, 1));
         
         glm::mat4 view = glm::mat4(1.0f);
         view = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 3.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
+            glm::vec3(0.0f, 0.0f, 5.0f), // pozícia kamery (pohľad z osi Z smerom k scéne)
             glm::vec3(0.0f, 0.0f, 0.0f), // bod, na ktorý kamera pozerá
             glm::vec3(0.0f, 1.0f, 0.0f)  // smer nahor
         );
 
         float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
         glm::mat4 projection = glm::mat4(1.0f);
-        //projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        //projection = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
         
-        glUseProgram(shadedShader);
-        // Get matrix's uniform location and set matrix
-        GLint modelLoc = glGetUniformLocation(shadedShader, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        GLint viewLoc = glGetUniformLocation(shadedShader, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        GLint projectionLoc = glGetUniformLocation(shadedShader, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        shadedShader.setUniformMat4("model", model);
+        shadedShader.setUniformMat4("view", view);
+        shadedShader.setUniformMat4("projection", projection);
 
-        GLint lightPosLoc = glGetUniformLocation(shadedShader, "lightPos");
-        GLint lightColorLoc = glGetUniformLocation(shadedShader, "lightColor");
-        GLint objectColorLoc = glGetUniformLocation(shadedShader, "objectColor");
-
-        glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-        glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
-        glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
+        shadedShader.setUniformVec3("lightPos", lightPos);
+        shadedShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        shadedShader.setUniformVec3("objectColor", glm::vec3(1.0f, 0.0f, 0.0f));
 
         c.draw();
-
-
-        glUseProgram(shader);
-        // Get matrix's uniform location and set matrix
-        modelLoc = glGetUniformLocation(shader, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        viewLoc = glGetUniformLocation(shader, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        projectionLoc = glGetUniformLocation(shader, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-        GLint colorLoc = glGetUniformLocation(shader, "out_color");
-        glUniform4f(colorLoc, 1.0f, 0.0f, 0.0f, 0.0f);
-
-        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-
         
-        model = glm::translate(model, glm::vec3(-1.5f, 0.0f, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform4f(colorLoc, 0.0f, 1.0f, 0.0f, 0.0f);
-        //d.draw();
-
-        glUseProgram(lampShader);
-        modelLoc = glGetUniformLocation(lampShader, "model");
-        viewLoc = glGetUniformLocation(lampShader, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        projectionLoc = glGetUniformLocation(lampShader, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        shadedShader.setUniformVec3("objectColor", glm::vec3(0.0f, 1.0f, 0.0f));
+        shadedShader.setUniformMat4("model", model);
+        d.draw();
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        //glUniform4f(colorLoc, 0.0f, 0.0f, 1.0f, 0.0f);
+
+        lampShader.setUniformMat4("model", model);
+        lampShader.setUniformMat4("view", view);
+        lampShader.setUniformMat4("projection", projection);
+
         e.draw();
 
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -149,7 +115,6 @@ int main(void) {
         glfwSwapBuffers(window);
     }
 
-    glDeleteProgram(shader);
     glfwTerminate();
     return 0;
 }

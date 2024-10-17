@@ -1,9 +1,9 @@
 #include <main.hpp>
+#include <unordered_map>
+#include <variant>
 
-class Shader {
-    public:
-        // TODO shader class, uniforms
-};
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 ShaderProgramSource parseShader(const std::string& filePath) {
     enum class ShaderType {
@@ -69,4 +69,39 @@ GLuint createShader(const std::string& vertexShader, const std::string& fragment
     glDeleteShader(vs);
     glDeleteShader(fs);
     return program;
+}
+
+Shader::Shader(const std::string path, const std::initializer_list<std::string>& uniformsList) {
+    ShaderProgramSource source = parseShader(path);
+    shader = createShader(source.vertexSource, source.fragmentSource);
+
+    glUseProgram(shader);
+    for (const std::string& uniform : uniformsList)
+        uniforms[uniform] = glGetUniformLocation(shader, uniform.c_str());
+
+    
+}
+
+Shader::~Shader() {
+    glDeleteProgram(shader);
+}
+
+void Shader::setUniformMat4(const std::string& uniform, const glm::mat4& matrix) {
+    glUseProgram(shader);
+    glUniformMatrix4fv(uniforms[uniform], 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void Shader::setUniformVec4(const std::string& uniform, const glm::vec4 vector) {
+    glUseProgram(shader);
+    glUniform4fv(uniforms[uniform], 1, glm::value_ptr(vector));
+
+}
+
+void Shader::setUniformVec3(const std::string& uniform, const glm::vec3 vector) {
+    glUseProgram(shader);
+    glUniform3fv(uniforms[uniform], 1, glm::value_ptr(vector));
+}
+
+void Shader::use() {
+    glUseProgram(shader);
 }
