@@ -24,15 +24,27 @@ struct Vertex {
 };
 
 struct Triangle {
-    std::array<Vertex, 3> vertices;
+    std::array<size_t, 3> vertices;
+    std::array<size_t, 3> normals;
 
-    Triangle(const std::array<glm::vec3, 3>& positions, const glm::vec3& normal)
-        : vertices{ Vertex(positions[0], normal), Vertex(positions[1], normal), Vertex(positions[2], normal) } {}
+    Triangle(const std::array<size_t, 3>& positions, const std::array<size_t, 3>& normals)
+        : vertices{ positions[0], positions[1], positions[2] }, normals{ normals[0], normals[1], normals[2] } {}
+
+    Triangle() : vertices{ 0, 0, 0 }, normals{ 0, 0, 0 } {}
 };
 
+template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>  // Normals per vertex
 class Mesh {
     public:
-        std::vector<Triangle> triangles;
+        std::array<Triangle, MAX_TRIANGLES> triangles;
+        size_t triangleCount = 0;
+
+        std::array<glm::vec3, MAX_VERTICES> vertexPositions;
+        size_t vertexCount = 0;
+
+        std::array<std::array<glm::vec3, MAX_NORMALS>, MAX_VERTICES> normals = {};
+
+        //std::vector<Triangle> triangles;
 
         GLuint VAO;
         GLuint VBO;
@@ -52,8 +64,8 @@ class Mesh {
 
             std::vector<Vertex> vertexData;
             for (const Triangle& triangle : triangles) {
-                for (const Vertex& vertex : triangle.vertices) {
-                    vertexData.push_back(vertex);
+                for (size_t i = 0; i < 3; ++i) {
+                    vertexData.emplace_back(vertexPositions[triangle.vertices[i]], normals[triangle.vertices[i]][triangle.normals[i]]);
                 }
             }
             glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
@@ -68,22 +80,68 @@ class Mesh {
         }
 
     protected:
-        void addTriangle(const std::array<glm::vec3,3>& positions) {
-            glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
-            triangles.emplace_back(positions, normal);
+        size_t findVertex(const glm::vec3& position) {
+            for (size_t i = 0; i < vertexCount; ++i) {
+                if (vertexPositions[i] == position)
+                    return i;
+            }
+            return vertexPositions.size();
         }
 
-        void addTriangle(std::vector<Triangle>& triangleList, const std::array<glm::vec3,3>& positions) {
+        size_t addVertex(const glm::vec3& position) {
+            if (vertexCount == MAX_VERTICES)
+                return vertexCount;
+
+            vertexPositions[vertexCount] = position;
+            return vertexCount++;
+        }
+
+        size_t addNormal(const size_t index, const glm::vec3& newNormal) {
+            for (size_t i = 0; i < MAX_NORMALS; ++i) {  //glm::vec3& normal : normals[index]
+                if (normals[index][i] == newNormal)
+                    return i;
+                else if (normals[index][i] == glm::vec3(0,0,0)) {
+                    normals[index][i] = newNormal;
+                    return i;
+                }
+            }
+            return MAX_NORMALS;
+        }
+
+        void addTriangle(const std::array<glm::vec3,3>& positions) {
+            std::array<size_t, 3> triangleVertices;
+            std::array<size_t, 3> triangleNormals;
+
+            glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
+
+            size_t i = 0;
+            for (const glm::vec3& position : positions) {
+                size_t index = findVertex(position);
+                if (index == MAX_VERTICES)
+                    index = addVertex(position);
+                // TODO if index == MAX_VERTICES snazime sa pridat vrchol nad ramec array
+                size_t normalIndex = addNormal(index, normal);
+
+                triangleVertices[i] = index;
+                triangleNormals[i] = normalIndex;
+                i++;
+            }
+            triangles[triangleCount] = Triangle(triangleVertices, triangleNormals);
+            triangleCount++;
+        }
+
+        // To iste len s dodanym vectorom, nie atribut triedy
+        /*void addTriangle(std::vector<Triangle>& triangleList, const std::array<glm::vec3,3>& positions) {
             glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
             triangleList.emplace_back(positions, normal);
-        }
+        }*/
 
         void addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices) {
             for (const auto& triangle : indices)
                 addTriangle({ vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]] });
         }
 
-        float calcSize(Vertex vertex, Vertex vertex2) {
+        /*float calcSize(Vertex vertex, Vertex vertex2) {
             return sqrt(pow((vertex.position.x - vertex2.position.x),2)
                    +pow((vertex.position.y - vertex2.position.y),2)
                    +pow((vertex.position.z - vertex2.position.z),2));
@@ -96,10 +154,10 @@ class Mesh {
                 float c = calcSize(triangle.vertices[0], triangle.vertices[2]);
                 std::cout << a << ", " << b << ", " << c << ", " << std::endl;
             }
-        }
+        }*/   
 };
 
-class Cube : public Mesh {
+class Cube : public Mesh<12,8,3> {
     public:
         Cube(float size) {
             float halfsize = size / 2;
@@ -134,7 +192,7 @@ class Cube : public Mesh {
             addGeometry(vertices, indices);
         }
 };
-
+/*
 class Icosahedron : public Mesh {
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
@@ -227,3 +285,4 @@ class Icosphere : public Icosahedron {
             triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
         }
 };
+*/
