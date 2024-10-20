@@ -43,7 +43,7 @@ int main(void) {
 
     if (glewInit() != GLEW_OK)
         std::cout << "Error: " << std::endl;
-        
+
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -62,7 +62,7 @@ int main(void) {
 
     glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
 
-    Object b(Icosahedron(1.0f),
+    /*Object b(Icosahedron(1.0f),
         glm::vec3(1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
@@ -72,10 +72,19 @@ int main(void) {
         glm::vec3(-1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f));
+        glm::vec3(0.0f, 1.0f, 1.0f));*/
 
-    b.mesh.loadBufferData();
-    a.mesh.loadBufferData();
+                 
+    Cube cube(0.8f);
+    Object<Cube> d(cube,
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f, 0.0f, 0.0f));
+            
+    d.mesh.loadBufferData();
+    //b.mesh.loadBufferData();
+    //a.mesh.loadBufferData();
 
     Camera c{};
     c.set(shadedShader);
@@ -97,11 +106,14 @@ int main(void) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        a.changeRotation(sin((float)glfwGetTime()));
-        a.draw(shadedShader);
+        //a.changeRotation(sin((float)glfwGetTime()));
+        //a.draw(shadedShader);
         
-        b.changeRotation(-(float)glfwGetTime());
-        b.draw(shadedShader);
+        //b.changeRotation(-(float)glfwGetTime());
+        //b.draw(shadedShader);
+
+        d.changeRotation((float)glfwGetTime());
+        d.draw(shadedShader);
 
         //e.draw();
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
