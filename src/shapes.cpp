@@ -80,9 +80,16 @@ class Mesh {
         }
 
     protected:
+        bool comparePositions(const glm::vec3& position1, const glm::vec3& position2) {
+            const float tolerance = 0.00001f;
+            return (fabs(position1.x - position2.x) < tolerance) &&
+                (fabs(position1.y - position2.y) < tolerance) &&
+                (fabs(position1.z - position2.z) < tolerance);
+        }
+
         size_t findVertex(const glm::vec3& position) {
             for (size_t i = 0; i < vertexCount; ++i) {
-                if (vertexPositions[i] == position)
+                if (comparePositions(vertexPositions[i], position))
                     return i;
             }
             return vertexPositions.size();
@@ -194,7 +201,7 @@ class Cube : public Mesh<12,8,3> {
         }
 };
 
-class Icosahedron : public Mesh<20,14,5> {
+class Icosahedron : public Mesh<20,12,5> {
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
         const float V_ANGLE = atanf(1.0f / 2);  // elevation = 26.565 degree
