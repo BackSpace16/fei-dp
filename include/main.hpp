@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <variant>
 
+const GLuint WIDTH = 1800, HEIGHT = 1200;
+
 struct ShaderProgramSource {
     std::string vertexSource;
     std::string fragmentSource;

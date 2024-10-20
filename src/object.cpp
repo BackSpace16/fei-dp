@@ -21,7 +21,7 @@ class Camera {
 
             float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
             projectionMatrix = glm::mat4(1.0f);
-            projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+            projectionMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
             //projectionMatrix = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
             
         }

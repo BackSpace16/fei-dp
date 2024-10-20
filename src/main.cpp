@@ -5,8 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-const GLuint WIDTH = 800, HEIGHT = 600;
-
 void GLAPIENTRY errorOccurredGL(GLenum source,
                                 GLenum type,
                                 GLuint id,
@@ -19,6 +17,10 @@ void GLAPIENTRY errorOccurredGL(GLenum source,
     printf("%s\n", message);
     exit(-1); // shut down the program gracefully (it does cleanup stuff too)
     // without exit(), OpenGL will constantly print the error message... make sure to kill your program.
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
 }
 
 int main(void) {
@@ -41,10 +43,9 @@ int main(void) {
 
     if (glewInit() != GLEW_OK)
         std::cout << "Error: " << std::endl;
-    
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+        
+    glViewport(0, 0, WIDTH, HEIGHT);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -108,6 +109,7 @@ int main(void) {
         glfwSwapBuffers(window);
     }
 
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }

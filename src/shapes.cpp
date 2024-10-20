@@ -17,6 +17,10 @@ struct Vertex {
 
     Vertex(const glm::vec3& pos, const glm::vec3& norm)
         : position{pos}, normal{norm} {}
+
+    bool operator==(const Vertex& other) const {
+        return position == other.position && normal == other.normal;
+    }
 };
 
 struct Triangle {
