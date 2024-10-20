@@ -92,6 +92,7 @@ class Mesh {
             if (vertexCount == MAX_VERTICES)
                 return vertexCount;
 
+            std::cout << "pridavam vrchol" << " " << position.x << " " << position.y << " " << position.z << " " << std::endl;
             vertexPositions[vertexCount] = position;
             return vertexCount++;
         }
@@ -192,8 +193,8 @@ class Cube : public Mesh<12,8,3> {
             addGeometry(vertices, indices);
         }
 };
-/*
-class Icosahedron : public Mesh {
+
+class Icosahedron : public Mesh<20,14,5> {
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
         const float V_ANGLE = atanf(1.0f / 2);  // elevation = 26.565 degree
@@ -234,7 +235,7 @@ class Icosahedron : public Mesh {
             }
         }
 };
-
+/*
 class Icosphere : public Icosahedron {
     private:
         glm::vec3 updateRadius(const glm::vec3& position, const float radius) {
