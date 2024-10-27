@@ -44,6 +44,8 @@ int main(void) {
     if (glewInit() != GLEW_OK)
         std::cout << "Error: " << std::endl;
 
+        
+
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -74,15 +76,28 @@ int main(void) {
         glm::vec3(1.0f, 1.0f, 1.0f),
         glm::vec3(0.0f, 1.0f, 1.0f));*/
 
-                 
-    Icosahedron cube(0.8f);
-    Object<Icosahedron> d(cube,
-            glm::vec3(0.0f, 0.0f, 0.0f),
+        
+    Icosphere<2> cube(0.8f);
+    Object<Icosphere<2>> p(cube,
+            glm::vec3(-1.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::vec3(1.0f, 1.0f, 1.0f));
+
+
+    Icosahedron cubeb(0.8f);
+    Object<Icosahedron> d(cubeb,
+            glm::vec3(1.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f));
             
+    //d.mesh.smoothSurface();
     d.mesh.loadBufferData();
+
+    //p.mesh.smoothSurface();
+    p.mesh.loadBufferData();
+
     //b.mesh.loadBufferData();
     //a.mesh.loadBufferData();
 
@@ -102,6 +117,8 @@ int main(void) {
     lampShader.setUniformMat4("projection", projection);
     */
 
+    glClearColor(0.0f,0.0f,0.0f,1.0f);
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -112,8 +129,11 @@ int main(void) {
         //b.changeRotation(-(float)glfwGetTime());
         //b.draw(shadedShader);
 
-        d.changeRotation((float)glfwGetTime());
+        d.changeRotation(-(float)glfwGetTime());
         d.draw(shadedShader);
+
+        p.changeRotation(sin((float)glfwGetTime()));
+        p.draw(shadedShader);
 
         //e.draw();
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
