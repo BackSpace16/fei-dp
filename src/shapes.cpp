@@ -310,8 +310,7 @@ constexpr size_t calculateMaxVertices(size_t N) {
 }
 
 template<size_t N_SUBDIVISION>
-class Icosphere : public Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMaxVertices(N_SUBDIVISION), 10> {//public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMaxVertices(N_SUBDIVISION), 6> 
-    
+class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMaxVertices(N_SUBDIVISION), 10>
     public:
         Icosphere(float radius) {
             createGeometry(radius);
@@ -338,18 +337,67 @@ class Icosphere : public Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMax
         void subdivideTriangles(float radius, size_t subdivision) {
             //std::vector<Triangle> new_triangles;
             size_t end = this->triangleCount;
-            for (size_t i = 0; i < end; i++) {
-                std::cout << i << std::endl;
-                Triangle& triangle = this->triangles[i];
+            for (size_t t = 0; t < end; t++) {
+                std::cout << t << std::endl;
+                Triangle& triangle = this->triangles[t];
 
-                size_t v0 = triangle.vertices[0];
-                size_t v1 = triangle.vertices[1];
-                size_t v2 = triangle.vertices[2];
+                size_t o0 = triangle.vertices[0];
+                size_t o1 = triangle.vertices[1];
+                size_t o2 = triangle.vertices[2];
 
-                glm::vec3 p0 = this->vertexPositions[v0];
-                glm::vec3 p1 = this->vertexPositions[v1];
-                glm::vec3 p2 = this->vertexPositions[v2];
-            
+                glm::vec3 o0p = this->vertexPositions[o0];
+                glm::vec3 o1p = this->vertexPositions[o1];
+                glm::vec3 o2p = this->vertexPositions[o2];
+
+                glm::vec3 f = o0p;
+                glm::vec3 l = o1p;
+                glm::vec3 u = o2p;
+                glm::vec3 uf, ul;
+
+                for (size_t d = N_SUBDIVISION; d > 0; d--) {
+                    if (d == N_SUBDIVISION) {
+                        glm::vec3 p1 = updateRadius(f + (1.0f / d) * (l - f), radius);
+                        glm::vec3 p2 = updateRadius(f + (1.0f / d) * (u - f), radius);
+                        triangle.vertices[1] = this->findOrAddVertex(updateRadius(p1, radius));
+                        triangle.vertices[2] = this->findOrAddVertex(updateRadius(p2, radius));
+                        
+                        glm::vec3 normal = glm::normalize(glm::cross(p1 - f, p2 - f));                        
+                        this->normals[o0][triangle.normals[0]] = normal;
+                        triangle.normals[1] = this->addNormal(triangle.vertices[1], normal);
+                        triangle.normals[2] = this->addNormal(triangle.vertices[2], normal);
+                    }
+                    else {
+                        glm::vec3 p1 = f + (1.0f / d) * (l - f);
+
+                        glm::vec3 p2 = f + (1.0f / d) * (u - f);
+
+                        if (this->comparePositions(p2, o2p)) {
+                            std::cout << p2.x << ", " << p2.y << ", " << p2.z << std::endl;
+                            std::cout << o2p.x << ", " << o2p.y << ", " << o2p.z << std::endl;
+                            this->addTriangle({this->findOrAddVertex(updateRadius(f, radius)), this->findOrAddVertex(updateRadius(p1, radius)), o2});
+                        }
+                        else {
+                            this->addTriangle({updateRadius(f, radius), updateRadius(p1, radius), updateRadius(p2, radius)});
+                        }
+                        
+
+                    }
+                    uf = f + (1.0f / d) * (u - f);
+                    ul = l + (1.0f / d) * (u - l);
+                    for (size_t i = 1; i < d; i++) {
+                        this->addTriangle({updateRadius(uf + (static_cast<float>(i - 1) / (d - 1)) * (ul - uf), radius), 
+                                           updateRadius(f + (static_cast<float>(i) / d) * (l - f), radius),
+                                           updateRadius(uf + (static_cast<float>(i) / (d - 1)) * (ul - uf), radius)});
+                        this->addTriangle({updateRadius(f + (static_cast<float>(i) / d) * (l - f), radius), 
+                                           updateRadius(f + (static_cast<float>(i + 1) / d) * (l - f), radius),
+                                           updateRadius(uf + (static_cast<float>(i) / (d - 1)) * (ul - uf), radius)});
+                    }
+                    f = uf;
+                    l = ul;
+                }
+
+
+                /*
                 glm::vec3 m1 = p0 + (1.0f / 2.0f) * (p1 - p0);
                 glm::vec3 m2 = p0 + (1.0f / 2.0f) * (p2 - p0);
                 glm::vec3 m3 = p1 + (1.0f / 2.0f) * (p2 - p1);
@@ -382,9 +430,9 @@ class Icosphere : public Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMax
 
                 //this->vertexPositions[triangle.vertices[2]] = c2;
 
-                /*this->normals[triangle.vertices[0]][triangle.normals[0]] = normal;
-                this->normals[triangle.vertices[1]][triangle.normals[1]] = normal;
-                this->normals[triangle.vertices[2]][triangle.normals[2]] = normal;*/
+                //this->normals[triangle.vertices[0]][triangle.normals[0]] = normal;
+                //this->normals[triangle.vertices[1]][triangle.normals[1]] = normal;
+                //this->normals[triangle.vertices[2]][triangle.normals[2]] = normal;
 
 
                 //this->addTriangle({v0,i1,i2});
@@ -392,6 +440,7 @@ class Icosphere : public Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMax
                 this->addTriangle({i1,i3,i2});
                 this->addTriangle({i1,v1,i3});
                 this->addTriangle({i2,i3,v2});
+                */
             }
             std::cout << this->getMaxTriangles() << "   " << this->getMaxVertices() << std::endl;
             //triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
