@@ -37,7 +37,7 @@ class Camera {
 template<typename MeshType>
 class Object {
     public:
-        MeshType mesh;
+        MeshType& mesh;
         glm::vec3 position;
         glm::vec3 rotation;
         glm::vec3 scale;
@@ -45,7 +45,7 @@ class Object {
         glm::mat4 modelMatrix;
         bool move;
 
-        Object(MeshType mesh,
+        Object(MeshType& mesh,
                glm::vec3 position = glm::vec3(0.0f), 
                glm::vec3 rotation = glm::vec3(0.0f), 
                glm::vec3 scale = glm::vec3(1.0f),
