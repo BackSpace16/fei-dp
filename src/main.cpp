@@ -78,6 +78,8 @@ int main(void) {
 
         
     Icosphere<5> cube(0.3f);
+    Icosphere<5> cubes(0.3f);
+    Icosphere<5> cubeb(0.8f);
 
     Object<Icosphere<5>> p(cube,
             glm::vec3(-1.0f, 0.0f, 0.0f),
@@ -107,54 +109,60 @@ int main(void) {
             glm::vec3(-1.0f, 1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::vec3(0.0f, 0.0f, 1.0f));
             
     Object<Icosphere<5>> p91(cube,
             glm::vec3(-1.5f, 1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 0.0f, 1.0f));
+            glm::vec3(1.0f, 0.0f, 0.0f));
             
     Object<Icosphere<5>> p92(cube,
             glm::vec3(-2.0f, 1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.0f, 1.0f, 1.0f));
+            glm::vec3(0.0f, 1.0f, 0.0f));
             
     Object<Icosphere<5>> p93(cube,
             glm::vec3(-2.5f, 1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 1.0f, 0.0f));
+            glm::vec3(1.0f, 0.5f, 0.0f));
 
             
-    Object<Icosphere<5>> p8(cube,
+    Object<Icosphere<5>> p8(cubes,
             glm::vec3(-1.0f, -1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::vec3(1.0f, 0.5f, 1.0f));
             
-    Object<Icosphere<5>> p81(cube,
+    Object<Icosphere<5>> p81(cubes,
             glm::vec3(-1.5f, -1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 0.0f, 1.0f));
+            glm::vec3(0.5f, 0.0f, 1.0f));
             
-    Object<Icosphere<5>> p82(cube,
+    Object<Icosphere<5>> p82(cubes,
             glm::vec3(-2.0f, -1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.0f, 1.0f, 1.0f));
+            glm::vec3(0.0f, 0.5f, 1.0f));
             
-    Object<Icosphere<5>> p83(cube,
+    Object<Icosphere<5>> p83(cubes,
             glm::vec3(-2.5f, -1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(1.0f, 1.0f, 0.0f));
+            glm::vec3(0.5f, 1.0f, 0.0f));
             
-    Icosahedron cubeb(0.8f);
-    Object<Icosahedron> d(cubeb,
-            glm::vec3(1.0f, 0.0f, 0.0f),
+    Object<Icosphere<5>> p99(cubeb,
+            glm::vec3(1.0f, 0.8f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+            
+    Icosahedron icos(0.5f);
+    Object<Icosahedron> d(icos,
+            glm::vec3(1.0f, -1.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
             glm::vec3(0.0f, 1.0f, 0.0f));
@@ -162,8 +170,13 @@ int main(void) {
     //d.mesh.smoothSurface();
     d.mesh.loadBufferData();
 
-    //p.mesh.smoothSurface();
+    cube.smoothSurface();
     cube.loadBufferData();
+
+    cubes.loadBufferData();
+
+    cubeb.smoothSurface();
+    cubeb.loadBufferData();
 
     //b.mesh.loadBufferData();
     //a.mesh.loadBufferData();
@@ -214,6 +227,9 @@ int main(void) {
         p81.draw(shadedShader);
         p82.draw(shadedShader);
         p83.draw(shadedShader);
+
+        p99.changeRotation((float)glfwGetTime());
+        p99.draw(shadedShader);
 
         //e.draw();
         //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
