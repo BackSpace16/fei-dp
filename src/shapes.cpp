@@ -95,11 +95,14 @@ class Mesh {
             for (size_t i = 0; i < MAX_VERTICES; ++i) {
                 glm::vec3 sum(0.0f);
 
+                size_t normalsCount = 0;
                 for (size_t j = 0; j < MAX_NORMALS; ++j) {
+                    if (!comparePositions(normals[i][j], glm::vec3(0.0f)))
+                        normalsCount++;
                     sum += normals[i][j];
                 }
-
-                glm::vec3 average = sum / static_cast<float>(MAX_NORMALS);
+                //std::cout << normalsCount << std::endl;
+                glm::vec3 average = sum / static_cast<float>(normalsCount);
                 averagedNormals[i][0] = glm::normalize(average);
             }
 
