@@ -34,9 +34,10 @@ class Camera {
     // TODO camera movement, camera light
 };
 
+template<typename MeshType>
 class Object {
     public:
-        Mesh mesh;
+        MeshType& mesh;
         glm::vec3 position;
         glm::vec3 rotation;
         glm::vec3 scale;
@@ -44,7 +45,7 @@ class Object {
         glm::mat4 modelMatrix;
         bool move;
 
-        Object(Mesh mesh,
+        Object(MeshType& mesh,
                glm::vec3 position = glm::vec3(0.0f), 
                glm::vec3 rotation = glm::vec3(0.0f), 
                glm::vec3 scale = glm::vec3(1.0f),
@@ -62,7 +63,7 @@ class Object {
         }
 
         void changeRotation(float degrees) {
-            rotation = glm::vec3(0.0f, glm::degrees(degrees), 0.0f);
+            rotation = glm::vec3(glm::degrees(degrees), glm::degrees(degrees), 0.0f);
             transform();
         }
 
