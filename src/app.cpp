@@ -105,8 +105,17 @@ Settings::Settings() {
 }
 
 void Settings::loadDefault() {
-    w_width = 1800;
-    w_height = 1200;
+    std::ifstream file("../res/settings.cfg");
+    if (file.is_open()) {
+        nlohmann::json jsonConfig;
+        file >> jsonConfig;
+        w_width = jsonConfig.value("w_width", 800);
+        w_height = jsonConfig.value("w_height", 600);
+        std::cout << w_width << std::endl;
+    } 
+    else {
+        std::cerr << "Failed to open settings.cfg" << std::endl;
+    }
 }
 
 /*
