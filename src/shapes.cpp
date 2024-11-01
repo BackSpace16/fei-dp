@@ -272,15 +272,13 @@ void Icosahedron::createGeometry(float radius) {
     }
 }
 
-template<size_t N_SUBDIVISION>
-Icosphere<N_SUBDIVISION>::Icosphere(float radius) {
+Icosphere::Icosphere(size_t subdivision, float radius) : N_SUBDIVISION{subdivision} {
     createGeometry(radius);
     subdivideTriangles(radius);
     //calcTriangles();
 }
 
-template<size_t N_SUBDIVISION>
-glm::vec3 Icosphere<N_SUBDIVISION>::updateRadius(const glm::vec3& position, const float radius) {
+glm::vec3 Icosphere::updateRadius(const glm::vec3& position, const float radius) {
     float r = glm::length(position);              // radius
     float phi = atan2(position.y, position.x);   // azimuthal angle
     float theta  = acos(position.z / r);        // polar angle
@@ -292,8 +290,7 @@ glm::vec3 Icosphere<N_SUBDIVISION>::updateRadius(const glm::vec3& position, cons
     return glm::vec3{x,y,z};
 }
 
-template<size_t N_SUBDIVISION>
-void Icosphere<N_SUBDIVISION>::subdivideTriangles(float radius) {
+void Icosphere::subdivideTriangles(float radius) {
     //std::vector<Triangle> new_triangles;
     size_t end = this->triangleCount;
     for (size_t t = 0; t < end; t++) {
@@ -405,8 +402,7 @@ void Icosphere<N_SUBDIVISION>::subdivideTriangles(float radius) {
     //triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
 }
 
-template<size_t N_SUBDIVISION>
-void Icosphere<N_SUBDIVISION>::createGeometry(float radius) {
+void Icosphere::createGeometry(float radius) {
     float z, xy;
     float uAngle = -M_PI / 2 - H_ANGLE / 2;  // -126 deg (234 deg = 90 + 2*72 )
     float lAngle = -M_PI / 2;               // -90 deg  (270 deg)

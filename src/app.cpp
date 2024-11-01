@@ -57,7 +57,7 @@ App::App() {
 
     glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
     
-    Icosphere<4> cubex(0.8f);
+    Icosphere cubex(5, 0.8f);
     Object p99(cubex,
             glm::vec3(1.0f, 0.8f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),

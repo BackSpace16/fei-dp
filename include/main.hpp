@@ -119,13 +119,13 @@ constexpr size_t calculateMaxVertices(size_t N) {
     return 12 + (30 * (N-1));
 }
 
-template<size_t N_SUBDIVISION>
 class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMaxVertices(N_SUBDIVISION), 10>
     public:
-        Icosphere(float radius);
+        Icosphere(size_t subdivision, float radius);
     private:
         const float H_ANGLE = M_PI / 180 * 72;    // 72 degree = 360 / 5
         const float V_ANGLE = atanf(1.0f / 2);  // elevation = 26.565 degree
+        const size_t N_SUBDIVISION;
         glm::vec3 updateRadius(const glm::vec3& position, const float radius);
         void subdivideTriangles(float radius);
         void createGeometry(float radius);
