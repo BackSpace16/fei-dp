@@ -1,21 +1,15 @@
 #include <main.hpp>
-#include "shapes.cpp"
-#include "object.cpp"
 
 /*class Data {
     private:
     public:
         Data();
         ~Data();
-};
-
-
-class Scene {
-    private:
-    public:
-        Scene();
-        ~Scene();
 };*/
+
+/*Scene::Scene() {
+
+}*/
 
 GLFWwindow* App::initOpenGL() {
     if (!glfwInit()) {
@@ -64,7 +58,7 @@ App::App() {
     glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
     
     Icosphere<4> cubex(0.8f);
-    Object<Icosphere<4>> p99(cubex,
+    Object p99(cubex,
             glm::vec3(1.0f, 0.8f, 0.0f),
             glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(1.0f, 1.0f, 1.0f),
