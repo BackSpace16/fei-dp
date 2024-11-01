@@ -17,7 +17,7 @@ class Scene {
         ~Scene();
 };*/
 
-App::App() {
+GLFWwindow* App::initOpenGL() {
     if (!glfwInit()) {
         std::cout << "Error glfw init" << std::endl;
         exit(-1);
@@ -29,7 +29,7 @@ App::App() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(settings.w_width, settings.w_height, "Hello World", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(settings.w_width, settings.w_height, settings.w_name.c_str(), NULL, NULL);
     if (!window) {
         std::cout << "Error glfw create window" << std::endl;
         glfwTerminate();
@@ -48,7 +48,14 @@ App::App() {
 
     glEnable(GL_DEPTH_TEST);
 
-    //**********************************************//
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(errorOccurredGL, NULL);
+
+    return window;
+}
+
+App::App() {
+    glfwWindow = initOpenGL();
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -56,11 +63,7 @@ App::App() {
     Shader lampShader{"../res/shaders/lamp.shader", {"model", "view", "projection"}};
     Shader shadedShader{"../res/shaders/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(errorOccurredGL, NULL);
-
     glm::vec3 lightPos(0.0f, 0.0f, 5.0f);
-
     
     Icosphere<4> cubex(0.8f);
     Object<Icosphere<4>> p99(cubex,
@@ -81,17 +84,17 @@ App::App() {
     
     glClearColor(0.0f,0.0f,0.0f,1.0f);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(glfwWindow)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         p99.changeRotation((float)glfwGetTime());
         p99.draw(shadedShader);
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(glfwWindow);
     }
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
@@ -109,6 +112,7 @@ void Settings::loadDefault() {
     if (file.is_open()) {
         nlohmann::json jsonConfig;
         file >> jsonConfig;
+        w_name = jsonConfig.value("w_name", "okno");
         w_width = jsonConfig.value("w_width", 800);
         w_height = jsonConfig.value("w_height", 600);
         std::cout << w_width << std::endl;

@@ -26,6 +26,7 @@ class Settings {
     public:
         unsigned int w_width;
         unsigned int w_height;
+        std::string w_name;
 
         Settings();
 };
@@ -33,9 +34,11 @@ class Settings {
 class App {
     private:
         Settings settings;
+        GLFWwindow* glfwWindow;
     public:
         App();
         //~App();
+        GLFWwindow* initOpenGL();
 };
 
 struct ShaderProgramSource {
