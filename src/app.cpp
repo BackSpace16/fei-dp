@@ -52,9 +52,9 @@ App::App() {
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    Shader colorShader{"D://Skola//ing//DP//fei-dp//res//color.shader", {"model", "view", "projection", "out_color"}};//../../res/color.shader
-    Shader lampShader{"D://Skola//ing//DP//fei-dp//res//lamp.shader", {"model", "view", "projection"}}; // ../../res/lamp.shader
-    Shader shadedShader{"D://Skola//ing//DP//fei-dp//res//shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};//../../res/shaded.shader
+    Shader colorShader{"../res/shaders/color.shader", {"model", "view", "projection", "out_color"}};
+    Shader lampShader{"../res/shaders/lamp.shader", {"model", "view", "projection"}};
+    Shader shadedShader{"../res/shaders/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(errorOccurredGL, NULL);
