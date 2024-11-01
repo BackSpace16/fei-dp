@@ -20,6 +20,23 @@
 extern void GLAPIENTRY errorOccurredGL(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, const void*);
 extern void framebuffer_size_callback(GLFWwindow*, int, int);
 
+struct Color {
+    float r;
+    float g;
+    float b;
+    float a;
+
+    Color(float red, float green, float blue, float alpha = 1.0f);
+    Color(int red, int green, int blue, int alpha = 255);
+    Color(const std::string& hex);
+
+    glm::vec3 toVec3() const;
+    glm::vec4 toVec4() const;
+
+    void printRGB() const;
+    void printHex() const;
+};
+
 class Settings {
     private:
         void loadDefault();
@@ -27,6 +44,7 @@ class Settings {
         unsigned int w_width;
         unsigned int w_height;
         std::string w_name;
+        Color backgroundColor{"#000"};
 
         Settings();
 };
@@ -37,7 +55,7 @@ class App {
         GLFWwindow* glfwWindow;
     public:
         App();
-        //~App();
+        ~App();
         GLFWwindow* initOpenGL();
 };
 
