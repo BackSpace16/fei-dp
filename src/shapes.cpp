@@ -133,7 +133,7 @@ class Mesh {
             if (vertexCount == MAX_VERTICES)
                 return vertexCount;
 
-            std::cout << "pridavam vrchol " << vertexCount << " " << position.x << " " << position.y << " " << position.z << " " << std::endl;
+            //std::cout << "pridavam vrchol " << vertexCount << " " << position.x << " " << position.y << " " << position.z << " " << std::endl;
             vertexPositions[vertexCount] = position;
             return vertexCount++;
         }
@@ -151,7 +151,7 @@ class Mesh {
                 if (normals[index][i] == newNormal)
                     return i;
                 else if (normals[index][i] == glm::vec3(0,0,0)) {
-                    std::cout << "pridavam normal na poziciu " << i << std::endl;
+                    //std::cout << "pridavam normal na poziciu " << i << std::endl;
                     normals[index][i] = newNormal;
                     return i;
                 }
@@ -317,7 +317,7 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
     public:
         Icosphere(float radius) {
             createGeometry(radius);
-            subdivideTriangles(radius, 2);
+            subdivideTriangles(radius);
             //calcTriangles();
         }
 
@@ -337,11 +337,11 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
             return glm::vec3{x,y,z};
         }
 
-        void subdivideTriangles(float radius, size_t subdivision) {
+        void subdivideTriangles(float radius) {
             //std::vector<Triangle> new_triangles;
             size_t end = this->triangleCount;
             for (size_t t = 0; t < end; t++) {
-                std::cout << t << std::endl;
+                //std::cout << t << std::endl;
                 Triangle& triangle = this->triangles[t];
 
                 size_t o0 = triangle.vertices[0];
@@ -375,8 +375,8 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
                         glm::vec3 p2 = f + (1.0f / d) * (u - f);
 
                         if (this->comparePositions(p2, o2p)) {
-                            std::cout << p2.x << ", " << p2.y << ", " << p2.z << std::endl;
-                            std::cout << o2p.x << ", " << o2p.y << ", " << o2p.z << std::endl;
+                            //std::cout << p2.x << ", " << p2.y << ", " << p2.z << std::endl;
+                            //std::cout << o2p.x << ", " << o2p.y << ", " << o2p.z << std::endl;
                             this->addTriangle({this->findOrAddVertex(updateRadius(f, radius)), this->findOrAddVertex(updateRadius(p1, radius)), o2});
                         }
                         else {
@@ -445,7 +445,7 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
                 this->addTriangle({i2,i3,v2});
                 */
             }
-            std::cout << this->getMaxTriangles() << "   " << this->getMaxVertices() << std::endl;
+            //std::cout << this->getMaxTriangles() << "   " << this->getMaxVertices() << std::endl;
             //triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
         }
 

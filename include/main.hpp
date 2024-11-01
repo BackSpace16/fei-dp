@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <nlohmann/json.hpp>
 
 #include <iostream>
 #include <string>
@@ -14,7 +17,26 @@
 #include <unordered_map>
 #include <variant>
 
-const GLuint WIDTH = 1800, HEIGHT = 1200;
+extern void GLAPIENTRY errorOccurredGL(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, const void*);
+extern void framebuffer_size_callback(GLFWwindow*, int, int);
+
+class Settings {
+    private:
+        void loadDefault();
+    public:
+        unsigned int w_width;
+        unsigned int w_height;
+
+        Settings();
+};
+
+class App {
+    private:
+        Settings settings;
+    public:
+        App();
+        //~App();
+};
 
 struct ShaderProgramSource {
     std::string vertexSource;

@@ -3,11 +3,13 @@
 #include <iostream>
 
 class Camera {
+    private:
+        Settings& settings;
     public:
         glm::mat4 viewMatrix;
         glm::mat4 projectionMatrix;
 
-        Camera() {
+        Camera(Settings& settings) : settings{settings} {
             viewMatrix = glm::mat4(1.0f);
             glm::vec3 position{0.0f, 0.0f, 5.0f};
             glm::vec3 target{0.0f, 0.0f, 0.0f};
@@ -19,7 +21,7 @@ class Camera {
                 up             // smer nahor
             );
 
-            float aspectRatio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+            float aspectRatio = static_cast<float>(settings.w_width) / static_cast<float>(settings.w_height);
             projectionMatrix = glm::mat4(1.0f);
             projectionMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
             //projectionMatrix = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
