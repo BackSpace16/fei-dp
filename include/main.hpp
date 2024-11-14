@@ -242,3 +242,30 @@ class App {
         ~App();
         GLFWwindow* initOpenGL();
 };
+
+class Atom {
+    private:
+        glm::vec3 color;
+        float scale;
+        glm::vec3 position;
+};
+
+class Parser {
+    public:
+        Parser(const std::string& path);
+        void parseFile();
+
+};
+
+class ParserXYZ : public Parser {
+    public:
+        ParserXYZ(const std::string& path) : Parser(path) {}
+};
+
+class Data {
+    private:
+        Parser& parser;
+    public:
+        Data(Parser& parser);
+        //~Data();
+};

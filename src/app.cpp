@@ -1,13 +1,5 @@
 #include <main.hpp>
 
-/*class Data {
-    private:
-    public:
-        Data();
-        ~Data();
-};*/
-
-
 GLFWwindow* App::initOpenGL() {
     if (!glfwInit()) {
         std::cerr << "Error: glfw init" << std::endl;
@@ -74,7 +66,9 @@ App::App() {
         
     //cubex.loadBufferData();
 
-    
+    ParserXYZ parser{"../../F8BT.xyz"};
+    Data d{parser};
+
     std::shared_ptr mesh = std::make_shared<Icosphere>(5, 0.8f);
     scene.addMesh(mesh);
 
@@ -155,14 +149,6 @@ void Settings::loadDefault() {
         std::cerr << "Failed to open settings.cfg" << std::endl;
     }
 }
-
-/*
-Data::Data() {
-}
-
-Data::~Data() {
-}
-*/
 
 Scene::Scene(Settings& settings) : settings{settings} {}
 
