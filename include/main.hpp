@@ -14,6 +14,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <unordered_set>
 #include <unordered_map>
 #include <variant>
 
@@ -23,6 +24,7 @@
 #include <array>
 #include <span>
 #include <optional>
+#include <memory>
 
 extern void GLAPIENTRY errorOccurredGL(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, const void*);
 extern void framebuffer_size_callback(GLFWwindow*, int, int);
@@ -64,7 +66,10 @@ class MeshType {
     public:
         virtual void loadBufferData() = 0;
         virtual void draw() = 0;
+        virtual void smoothSurface() = 0;
         virtual ~MeshType() = default;
+        virtual void loadBufferData(const std::vector<glm::mat4>& modelMatrices, const std::vector<glm::vec3>& colors) = 0;
+        virtual void drawInstances(size_t instanceCount) = 0;
 };
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>  // Normals per vertex
@@ -81,11 +86,19 @@ class Mesh : public MeshType {
         GLuint VAO;
         GLuint VBO;
 
+        GLuint modelMatrixVBO;
+        GLuint colorVBO;
+
         size_t getMaxVertices();
         size_t getMaxTriangles();
         size_t getMaxNormals();
+        
         void draw();
         void loadBufferData();
+
+        void drawInstances(size_t instanceCount);
+        void loadBufferData(const std::vector<glm::mat4>& modelMatrices, const std::vector<glm::vec3>& colors);
+
         void smoothSurface();
     protected:
         bool comparePositions(const glm::vec3& position1, const glm::vec3& position2);
@@ -183,7 +196,7 @@ class Camera {
 
 class Object {
     public:
-        MeshType& mesh;
+        std::shared_ptr<MeshType> mesh;
         glm::vec3 position;
         glm::vec3 rotation;
         glm::vec3 scale;
@@ -191,24 +204,39 @@ class Object {
         glm::mat4 modelMatrix;
         bool move;
         
-        Object(MeshType& mesh,
+        Object(std::shared_ptr<MeshType> mesh,
                        glm::vec3 position = glm::vec3(0.0f), 
                        glm::vec3 rotation = glm::vec3(0.0f), 
                        glm::vec3 scale = glm::vec3(1.0f),
                        glm::vec3 color = glm::vec3(1.0f));
 
-        void draw(Shader& shader);
         void changeRotation(float degrees);
         glm::mat4 getModelMatrix();
+        glm::vec3 getColor();
 
     private:
         void transform();
+};
+
+class Scene {
+    private:
+        Settings& settings;
+    public:
+        std::unordered_set<std::shared_ptr<MeshType>> meshes;
+        std::vector<std::unique_ptr<Object>> objects;
+
+        Scene(Settings& settings);
+        void init();
+        void draw(Shader& shader);
+        void addMesh(std::shared_ptr<MeshType> mesh);
+        void addObject(std::unique_ptr<Object> object);
 };
 
 class App {
     private:
         Settings settings;
         GLFWwindow* glfwWindow;
+        Scene scene{settings};
     public:
         App();
         ~App();

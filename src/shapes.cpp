@@ -84,6 +84,60 @@ void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::smoothSurface() {
 }
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
+void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::drawInstances(size_t instanceCount) {
+    glBindVertexArray(VAO);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, triangles.size() * 3, instanceCount);
+    glBindVertexArray(0);
+}
+
+template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
+void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::loadBufferData(const std::vector<glm::mat4>& modelMatrices, const std::vector<glm::vec3>& colors) {
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    // Nastavenie základných vertexov
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    std::vector<Vertex> vertexData;
+    for (const Triangle& triangle : triangles) {
+        for (size_t i = 0; i < 3; ++i) {
+            vertexData.emplace_back(vertexPositions[triangle.vertices[i]], normals[triangle.vertices[i]][triangle.normals[i]]);
+        }
+    }
+    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+    // Atribúty pozície a normály
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(1);
+
+    // Nastavenie model matíc pre inštancie
+    glGenBuffers(1, &modelMatrixVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, modelMatrixVBO);
+    glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data(), GL_STATIC_DRAW);
+
+    for (int i = 0; i < 4; i++) {
+        glVertexAttribPointer(2 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(2 + i);
+        glVertexAttribDivisor(2 + i, 1);  // Atribúty inštancií
+    }
+
+    // Nastavenie farieb pre inštancie
+    glGenBuffers(1, &colorVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), colors.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(6);
+    glVertexAttribDivisor(6, 1);
+
+    glBindVertexArray(0);  // Odpojenie VAO
+}
+
+
+template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 bool Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::comparePositions(const glm::vec3& position1, const glm::vec3& position2) {
     const float tolerance = 0.0001f;
     return (fabs(position1.x - position2.x) < tolerance) &&
