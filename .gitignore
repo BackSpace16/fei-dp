@@ -4,3 +4,5 @@ include/*/
 
 CMakeLists.txt
 CMakePresets.json
+
+input/

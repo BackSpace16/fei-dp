@@ -146,14 +146,14 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
 
 class Settings {
     private:
-        void loadDefault();
+        void loadDefault(int argc, char* argv[]);
     public:
         unsigned int w_width;
         unsigned int w_height;
         std::string w_name;
         Color backgroundColor{"#000"};
 
-        Settings();
+        Settings(int argc, char* argv[]);
 };
 
 struct ShaderProgramSource {
@@ -202,7 +202,6 @@ class Object {
         glm::vec3 scale;
         glm::vec3 color;
         glm::mat4 modelMatrix;
-        bool move;
         
         Object(std::shared_ptr<MeshType> mesh,
                        glm::vec3 position = glm::vec3(0.0f), 
@@ -210,12 +209,54 @@ class Object {
                        glm::vec3 scale = glm::vec3(1.0f),
                        glm::vec3 color = glm::vec3(1.0f));
 
-        void changeRotation(float degrees);
         glm::mat4 getModelMatrix();
         glm::vec3 getColor();
 
     private:
         void transform();
+};
+
+class Atom {
+    private:
+        std::array<double, 3> position;
+        Color color;
+        float scale;
+
+    public:
+        Atom(const std::string& element, const std::array<double, 3>& pos);
+
+        glm::vec3 getPositionVec3() const;
+        glm::vec3 getColor() const;
+        glm::vec3 getScale() const;
+};
+
+class Parser {
+    protected:
+        std::string filePath;
+    public:
+        Parser(const std::string& path);
+        virtual ~Parser() = default;
+        virtual std::vector<Atom> parseFile() = 0;
+};
+
+class ParserXYZ : public Parser {
+    public:
+        explicit ParserXYZ(const std::string& path) : Parser(path) {}
+        std::vector<Atom> parseFile() override;
+};
+
+class Data {
+    private:
+        Settings& settings;
+        std::unique_ptr<Parser> parser;
+
+        void createParser();
+        void parse();
+    public:
+        std::vector<Atom> atoms;
+
+        Data(Settings& settings);
+        ~Data() = default;
 };
 
 class Scene {
@@ -225,7 +266,10 @@ class Scene {
         std::unordered_set<std::shared_ptr<MeshType>> meshes;
         std::vector<std::unique_ptr<Object>> objects;
 
+        std::shared_ptr<MeshType> getMeshForAtom();
+
         Scene(Settings& settings);
+        void loadData(Data& data);
         void init();
         void draw(Shader& shader);
         void addMesh(std::shared_ptr<MeshType> mesh);
@@ -235,10 +279,11 @@ class Scene {
 class App {
     private:
         Settings settings;
+        Data data;
+        Scene scene;
         GLFWwindow* glfwWindow;
-        Scene scene{settings};
     public:
-        App();
+        App(int argc, char* argv[]);
         ~App();
         GLFWwindow* initOpenGL();
 };

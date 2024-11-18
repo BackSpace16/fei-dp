@@ -2,7 +2,7 @@
 
 Camera::Camera(Settings& settings) : settings{settings} {
     viewMatrix = glm::mat4(1.0f);
-    glm::vec3 position{25.0f, 25.0f, 35.0f};
+    glm::vec3 position{50.0f, 35.0f, 50.0f};
     glm::vec3 target{0.0f, 0.0f, 0.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
 
@@ -27,16 +27,16 @@ void Camera::set(Shader& shader) {
 Object::Object(std::shared_ptr<MeshType> mesh, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec3 color) 
     : mesh(mesh), position(position), rotation(rotation), scale(scale), color(color) {
     transform();
-    move = false;
+    //move = false;
 }
+
+/*void Object::changeRotation(float degrees) {
+    rotation = glm::vec3(glm::degrees(degrees), glm::degrees(degrees), 0.0f);
+    transform();
+}*/
 
 glm::vec3 Object::getColor() {
     return color;
-}
-
-void Object::changeRotation(float degrees) {
-    rotation = glm::vec3(glm::degrees(degrees), glm::degrees(degrees), 0.0f);
-    transform();
 }
 
 glm::mat4 Object::getModelMatrix() {
