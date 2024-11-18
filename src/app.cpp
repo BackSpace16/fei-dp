@@ -36,7 +36,7 @@ GLFWwindow* App::initOpenGL() {
     return window;
 }
 
-App::App() {
+App::App(int argc, char* argv[]) : settings(argc, argv), scene(settings), data(settings) {
     glfwWindow = initOpenGL();
     std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -45,7 +45,7 @@ App::App() {
     Shader shadedShader{"../res/shaders/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
     Shader shadedInstanceShader{"../res/shaders/shadedinstance.shader", {"view", "projection", "lightPos", "lightColor"}};
 
-    glm::vec3 lightPos(0.0f, 0.0f, 35.0f);
+    glm::vec3 lightPos(50.0f, 35.0f, 50.0f);
     
     Camera camera{settings};
     camera.set(shadedShader);
@@ -56,36 +56,11 @@ App::App() {
 
     shadedInstanceShader.setUniformVec3("lightPos", lightPos);
     shadedInstanceShader.setUniformVec3("lightColor", Color{"#fff"}.toVec3());// glm::vec3(1.0f, 1.0f, 1.0f)
-
-    //Icosphere cubex(5, 0.8f);
-    /*Object p99{cubex,
-            glm::vec3(1.0f, 0.8f, 0.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)};*/
-        
-    //cubex.loadBufferData();
-
-    ParserXYZ parser{"../../F8BT.xyz"};
-    Data d{parser};
-
+    
+    scene.loadData(data);
+    /*
     std::shared_ptr mesh = std::make_shared<Icosphere>(5, 0.8f);
     scene.addMesh(mesh);
-
-    /*std::unique_ptr object = std::make_unique<Object>(mesh,
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.5f, 0.5f, 0.5f));
-            
-    std::unique_ptr object2 = std::make_unique<Object>(mesh,
-            glm::vec3(0.0f, 1.0f, 0.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f),
-            glm::vec3(0.5f, 0.0f, 1.0f));
-
-    scene.addObject(std::move(object));
-    scene.addObject(std::move(object2));*/
 
     for (int x = 0; x < 10; ++x) {
         for (int y = 0; y < 10; ++y) {
@@ -108,7 +83,7 @@ App::App() {
                 scene.addObject(std::move(object));
             }
         }
-    }
+    }*/
 
     scene.init();
     
@@ -119,9 +94,6 @@ App::App() {
 
         scene.draw(shadedInstanceShader);
 
-        /*p99.changeRotation((float)glfwGetTime());
-        p99.draw(shadedShader);*/
-
         glfwSwapBuffers(glfwWindow);
     }
 }
@@ -131,11 +103,11 @@ App::~App() {
     glfwTerminate();
 }
 
-Settings::Settings() {
-    loadDefault();
+Settings::Settings(int argc, char* argv[]) {
+    loadDefault(argc, argv);
 }
 
-void Settings::loadDefault() {
+void Settings::loadDefault(int argc, char* argv[]) {
     std::ifstream file("../res/settings.cfg");
     if (file.is_open()) {
         nlohmann::json jsonConfig;
@@ -151,6 +123,32 @@ void Settings::loadDefault() {
 }
 
 Scene::Scene(Settings& settings) : settings{settings} {}
+
+std::shared_ptr<MeshType> Scene::getMeshForAtom() {
+    std::shared_ptr mesh = std::make_shared<Icosphere>(5, 0.8f);
+    addMesh(mesh);
+    return mesh;
+}
+
+void Scene::loadData(Data& data) {
+    std::shared_ptr<MeshType> mesh = getMeshForAtom();
+
+    for (const Atom& atom : data.atoms) {
+        glm::vec3 atomPosition = atom.getPositionVec3();
+        glm::vec3 atomColor = atom.getColor();
+        glm::vec3 atomScale = atom.getScale();
+
+        std::unique_ptr<Object> object = std::make_unique<Object>(
+            mesh, 
+            atomPosition, 
+            glm::vec3(0.0f),
+            atomScale,
+            atomColor
+        );
+
+        addObject(std::move(object));
+    }
+}
 
 void Scene::init() {
     for (const auto& mesh : meshes) {
