@@ -147,11 +147,15 @@ class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDI
 class Settings {
     private:
         void loadDefault(int argc, char* argv[]);
+        void loadArgs(int argc, char* argv[]);
     public:
+        std::filesystem::path exePath;
         unsigned int w_width;
         unsigned int w_height;
         std::string w_name;
         Color backgroundColor{"#000"};
+        float vdw;
+        std::filesystem::path filePath;
 
         Settings(int argc, char* argv[]);
 };
@@ -161,7 +165,7 @@ struct ShaderProgramSource {
     std::string fragmentSource;
 };
 
-ShaderProgramSource parseShader(const std::string& filePath);
+ShaderProgramSource parseShader(const std::filesystem::path filePath);
 GLuint compileShader(GLuint type, const std::string& source);
 GLuint createShader(const std::string& vertexShader, const std::string& fragmentShader);
 
@@ -172,7 +176,7 @@ public:
     std::unordered_map<std::string, GLint> uniforms;
     GLuint shader;
 
-    Shader(const std::string path, const std::initializer_list<std::string>& uniformsList);
+    Shader(const std::filesystem::path path, const std::initializer_list<std::string>& uniformsList);
     ~Shader();
 
     void setUniformMat4(const std::string& uniform, const glm::mat4& matrix);
@@ -218,6 +222,7 @@ class Object {
 
 class Atom {
     private:
+    // TODO id nastavitelne od 0 alebo 1
         std::array<double, 3> position;
         Color color;
         float scale;
@@ -232,16 +237,16 @@ class Atom {
 
 class Parser {
     protected:
-        std::string filePath;
+        std::filesystem::path filePath;
     public:
-        Parser(const std::string& path);
+        Parser(const std::filesystem::path path);
         virtual ~Parser() = default;
         virtual std::vector<Atom> parseFile() = 0;
 };
 
 class ParserXYZ : public Parser {
     public:
-        explicit ParserXYZ(const std::string& path) : Parser(path) {}
+        explicit ParserXYZ(const std::filesystem::path path) : Parser(path) {}
         std::vector<Atom> parseFile() override;
 };
 

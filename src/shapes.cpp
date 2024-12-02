@@ -405,55 +405,7 @@ void Icosphere::subdivideTriangles(float radius) {
             f = uf;
             l = ul;
         }
-
-
-        /*
-        glm::vec3 m1 = p0 + (1.0f / 2.0f) * (p1 - p0);
-        glm::vec3 m2 = p0 + (1.0f / 2.0f) * (p2 - p0);
-        glm::vec3 m3 = p1 + (1.0f / 2.0f) * (p2 - p1);
-
-        m1 = updateRadius(m1, radius);
-        m2 = updateRadius(m2, radius);
-        m3 = updateRadius(m3, radius);
-
-        size_t i1 = this->findOrAddVertex(m1);
-        size_t i2 = this->findOrAddVertex(m2);
-        size_t i3 = this->findOrAddVertex(m3);
-
-        triangle.vertices[1] = i1;
-        triangle.vertices[2] = i2;
-
-        glm::vec3 normal = glm::normalize(glm::cross(m1 - p0, m2 - p0));
-
-        this->normals[v0][triangle.normals[0]] = normal;
-        size_t n1 = this->addNormal(i1,normal);
-        size_t n2 = this->addNormal(i2,normal);
-        triangle.normals[1] = n1;
-        triangle.normals[2] = n2;
-
-        //triangle.vertices[0].normal = normal;
-
-        //this->vertexPositions[triangle.vertices[1]] = c1;
-
-        //c1 = this->vertexPositions[triangle.vertices[1]];
-        //std::cout << c1.x << ", " << c1.y << ", " << c1.z << std::endl;
-
-        //this->vertexPositions[triangle.vertices[2]] = c2;
-
-        //this->normals[triangle.vertices[0]][triangle.normals[0]] = normal;
-        //this->normals[triangle.vertices[1]][triangle.normals[1]] = normal;
-        //this->normals[triangle.vertices[2]][triangle.normals[2]] = normal;
-
-
-        //this->addTriangle({v0,i1,i2});
-
-        this->addTriangle({i1,i3,i2});
-        this->addTriangle({i1,v1,i3});
-        this->addTriangle({i2,i3,v2});
-        */
     }
-    //std::cout << this->getMaxTriangles() << "   " << this->getMaxVertices() << std::endl;
-    //triangles.insert(triangles.end(), new_triangles.begin(), new_triangles.end());
 }
 
 void Icosphere::createGeometry(float radius) {

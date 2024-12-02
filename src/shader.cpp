@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-ShaderProgramSource parseShader(const std::string& filePath) {
+ShaderProgramSource parseShader(const std::filesystem::path filePath) {
     enum class ShaderType {
         NONE = -1,
         VERTEX = 0,
@@ -71,7 +71,7 @@ GLuint createShader(const std::string& vertexShader, const std::string& fragment
     return program;
 }
 
-Shader::Shader(const std::string path, const std::initializer_list<std::string>& uniformsList) {
+Shader::Shader(const std::filesystem::path path, const std::initializer_list<std::string>& uniformsList) {
     ShaderProgramSource source = parseShader(path);
     shader = createShader(source.vertexSource, source.fragmentSource);
 

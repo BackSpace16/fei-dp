@@ -7,7 +7,7 @@ struct ElementData {
 };
 
 const std::unordered_map<std::string, ElementData> elementData = {
-    { "H", {"#fff", 1.20} },
+    { "H", {"#fff", 1.20} }, // 3 odmocnina protonoveho cisla
     { "He", {"#d9ffff", 1.40} },
 
     { "Li", {"#cc80ff", 1.82} },
@@ -31,7 +31,7 @@ const std::unordered_map<std::string, ElementData> elementData = {
     { "K", {"#8f40d4", 2.75} },
     { "Ca", {"#3dff00", 2.31} },
     { "Sc", {"#e6e6e6", 2.11} },
-    { "Ti", {"#bfc2c7", 1.00} },
+    { "Ti", {"#bfc2c7", 2.46} },
     { "V", {"#a6a6ab", 1.00} },
     { "Cr", {"#8a99c7", 1.00} },
     { "Mn", {"#9c7ac7", 1.00} },

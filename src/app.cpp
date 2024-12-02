@@ -40,12 +40,12 @@ App::App(int argc, char* argv[]) : settings(argc, argv), scene(settings), data(s
     glfwWindow = initOpenGL();
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    Shader colorShader{"../res/shaders/color.shader", {"model", "view", "projection", "out_color"}};
-    Shader lampShader{"../res/shaders/lamp.shader", {"model", "view", "projection"}};
-    Shader shadedShader{"../res/shaders/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
-    Shader shadedInstanceShader{"../res/shaders/shadedinstance.shader", {"view", "projection", "lightPos", "lightColor"}};
+    Shader colorShader{settings.exePath / "../res/shaders/color.shader", {"model", "view", "projection", "out_color"}};
+    Shader lampShader{settings.exePath / "../res/shaders/lamp.shader", {"model", "view", "projection"}};
+    Shader shadedShader{settings.exePath / "../res/shaders/shaded.shader", {"model", "view", "projection", "lightPos", "lightColor", "objectColor"}};
+    Shader shadedInstanceShader{settings.exePath / "../res/shaders/shadedinstance.shader", {"view", "projection", "lightPos", "lightColor"}};
 
-    glm::vec3 lightPos(50.0f, 35.0f, 50.0f);
+    glm::vec3 lightPos(30.0f, 20.0f, 30.0f);
     
     Camera camera{settings};
     camera.set(shadedShader);
@@ -55,7 +55,7 @@ App::App(int argc, char* argv[]) : settings(argc, argv), scene(settings), data(s
     shadedShader.setUniformVec3("lightColor", Color{"#fff"}.toVec3());// glm::vec3(1.0f, 1.0f, 1.0f)
 
     shadedInstanceShader.setUniformVec3("lightPos", lightPos);
-    shadedInstanceShader.setUniformVec3("lightColor", Color{"#fff"}.toVec3());// glm::vec3(1.0f, 1.0f, 1.0f)
+    shadedInstanceShader.setUniformVec3("lightColor", Color{"#ccc"}.toVec3());// glm::vec3(1.0f, 1.0f, 1.0f)
     
     scene.loadData(data);
     /*
@@ -105,20 +105,34 @@ App::~App() {
 
 Settings::Settings(int argc, char* argv[]) {
     loadDefault(argc, argv);
+    loadArgs(argc, argv);
 }
 
 void Settings::loadDefault(int argc, char* argv[]) {
-    std::ifstream file("../res/settings.cfg");
-    if (file.is_open()) {
-        nlohmann::json jsonConfig;
-        file >> jsonConfig;
-        w_name = jsonConfig.value("w_name", "okno");
-        w_width = jsonConfig.value("w_width", 800);
-        w_height = jsonConfig.value("w_height", 600);
-        backgroundColor = Color{jsonConfig.value("backgroundColor", "#000")};
-    } 
-    else {
-        std::cerr << "Failed to open settings.cfg" << std::endl;
+    //try {
+        exePath = std::filesystem::canonical(argv[0]).parent_path();
+        std::filesystem::path configPath = exePath / "../res/settings.cfg";
+
+        std::ifstream file(configPath);
+        if (file.is_open()) {
+            nlohmann::json jsonConfig;
+            file >> jsonConfig;
+            w_name = jsonConfig.value("w_name", "okno");
+            w_width = jsonConfig.value("w_width", 800);
+            w_height = jsonConfig.value("w_height", 600);
+            backgroundColor = Color{jsonConfig.value("backgroundColor", "#000")};
+        }
+        else {
+            //std::cout << "Failed to open settings.cfg: " << configPath << std::endl;
+        }
+    /*} catch (const std::exception& e) {
+        std::cout << "Error while loading settings: " << e.what() << std::endl;
+    }*/
+}
+
+void Settings::loadArgs(int argc, char* argv[]) {
+    if (argc > 1) {
+        filePath = std::filesystem::canonical(argv[1]);
     }
 }
 
@@ -163,7 +177,7 @@ void Scene::init() {
             }
         }
 
-        //mesh->smoothSurface();
+        mesh->smoothSurface();
         // Load buffer data for each mesh with instance attributes
         mesh->loadBufferData(modelMatrices, colors);
     }
