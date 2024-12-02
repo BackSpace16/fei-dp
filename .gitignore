@@ -6,3 +6,4 @@ CMakeLists.txt
 CMakePresets.json
 
 input/
+res/.app.rc
