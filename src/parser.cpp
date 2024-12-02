@@ -4,7 +4,7 @@
 Atom::Atom(const std::string& element, const std::array<double, 3>& pos) : position(pos), color("#000") {
     if (elementData.contains(element)) {
         color = Color{elementData.at(element).color};
-        scale = elementData.at(element).radius;
+        scale = elementData.at(element).radius; //0.21 * 
     } 
     else {
         throw std::runtime_error("Unknown element: " + element);
@@ -24,11 +24,11 @@ glm::vec3 Atom::getScale() const {
     return glm::vec3(scale);
 }
 
-Parser::Parser(const std::string& path) : filePath(path) {}
+Parser::Parser(const std::filesystem::path path) : filePath(path) {}
 
 std::vector<Atom> ParserXYZ::parseFile() {
     std::vector<Atom> atoms;
-    std::ifstream file(filePath);
+    std::ifstream file(std::filesystem::weakly_canonical(filePath));
     std::string line;
 
     if (file.is_open()) {
@@ -71,6 +71,7 @@ std::vector<Atom> ParserXYZ::parseFile() {
     }
     else {
         std::cerr << "Nepodarilo sa otvoriť súbor!" << std::endl;
+        std::cerr << std::filesystem::weakly_canonical(filePath) << std::endl;
     }
     return atoms;
 }
@@ -81,7 +82,7 @@ Data::Data(Settings& settings) : settings{settings} {
 }
 
 void Data::createParser() {
-    parser = std::make_unique<ParserXYZ>("../../input/rutile_Au_Oad_CO.xyz");
+    parser = std::make_unique<ParserXYZ>(settings.filePath);
     // F8BT
     // ethylthiol_on_Au221_pulling
     // dithioCAB-Au24_hist
