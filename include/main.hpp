@@ -250,6 +250,12 @@ class ParserXYZ : public Parser {
         std::vector<Atom> parseFile() override;
 };
 
+class ParserCAR : public Parser {
+    public:
+        explicit ParserCAR(const std::filesystem::path path) : Parser(path) {}
+        std::vector<Atom> parseFile() override;
+};
+
 class Data {
     private:
         Settings& settings;

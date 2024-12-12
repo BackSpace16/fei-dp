@@ -2,8 +2,8 @@
 
 Camera::Camera(Settings& settings) : settings{settings} {
     viewMatrix = glm::mat4(1.0f);
-    glm::vec3 position{30.0f, 20.0f, 30.0f};
-    glm::vec3 target{0.0f, 0.0f, 0.0f};
+    glm::vec3 position{0.0f, 0.0f, 50.0f};
+    glm::vec3 target{10.0f, 10.0f, 0.0f};
     glm::vec3 up{0.0f, 1.0f, 0.0f};
 
     viewMatrix = glm::lookAt(
@@ -15,7 +15,8 @@ Camera::Camera(Settings& settings) : settings{settings} {
     float aspectRatio = static_cast<float>(settings.w_width) / static_cast<float>(settings.w_height);
     projectionMatrix = glm::mat4(1.0f);
     projectionMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-    //projectionMatrix = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, 0.1f, 100.0f);
+    float zoom = 10.0f;
+    //projectionMatrix = glm::ortho(-zoom * aspectRatio, zoom * aspectRatio, -zoom, zoom, 0.1f, 100.0f);
     
 }
 

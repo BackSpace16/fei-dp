@@ -4,7 +4,7 @@
 Atom::Atom(const std::string& element, const std::array<double, 3>& pos) : position(pos), color("#000") {
     if (elementData.contains(element)) {
         color = Color{elementData.at(element).color};
-        scale = elementData.at(element).radius; //0.21 * 
+        scale = 0.21 * elementData.at(element).radius; // 
     } 
     else {
         throw std::runtime_error("Unknown element: " + element);
@@ -33,6 +33,7 @@ std::vector<Atom> ParserXYZ::parseFile() {
 
     if (file.is_open()) {
         size_t i = 0;
+        std::cout <<  "Parsing XYZ file" << std::endl;
         while (std::getline(file, line)) {
             //std::cout << i << " ";
             std::istringstream iss(line);
@@ -70,9 +71,102 @@ std::vector<Atom> ParserXYZ::parseFile() {
         file.close();
     }
     else {
-        std::cerr << "Nepodarilo sa otvoriť súbor!" << std::endl;
+        std::cerr << "Cannot open file " << filePath << std::endl;
         std::cerr << std::filesystem::weakly_canonical(filePath) << std::endl;
     }
+    return atoms;
+}
+
+
+std::vector<Atom> ParserCAR::parseFile() {
+    std::vector<Atom> atoms;
+    std::ifstream file(std::filesystem::weakly_canonical(filePath));
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Cannot open file " << filePath << std::endl;
+        return atoms;
+    }
+
+    std::cout << "Parsing CAR file" << std::endl;
+
+    std::getline(file, line);
+
+    // Scale a bunka
+    std::getline(file, line);
+    double scale = std::stod(line);
+    std::array<std::array<double, 3>, 3> lattice;
+
+    for (int i = 0; i < 3; ++i) {
+        std::getline(file, line);
+        std::istringstream iss(line);
+        for (int j = 0; j < 3; ++j) {
+            iss >> lattice[i][j];
+            lattice[i][j] *= scale;
+        }
+    }
+
+    // Znacky a pocty
+    std::getline(file, line);
+    std::istringstream elementsStream(line);
+    std::vector<std::string> elements;
+    std::string element;
+    while (elementsStream >> element) {
+        elements.push_back(element);
+    }
+
+    std::getline(file, line);
+    std::istringstream countsStream(line);
+    std::vector<int> counts;
+    int count;
+    while (countsStream >> count) {
+        counts.push_back(count);
+    }
+
+    if (elements.size() != counts.size()) {
+        throw std::runtime_error("Mismatch between element types and counts");
+    }
+
+    // Direct
+    std::getline(file, line);
+    if (line.empty() || (line[0] != 'D' && line[0] != 'd')) {
+        throw std::runtime_error("Expected 'Direct' keyword");
+    }
+
+    // Suradnice
+    size_t elementIndex = 0;
+    size_t atomIndex = 0;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::array<double, 3> fractionalPosition, cartesianPosition;
+
+        for (int i = 0; i < 3; ++i) {
+            iss >> fractionalPosition[i];
+        }
+
+        // TODO if direct
+        for (int i = 0; i < 3; ++i) {
+            cartesianPosition[i] = 0.0;
+            for (int j = 0; j < 3; ++j) {
+                cartesianPosition[i] += fractionalPosition[j] * lattice[j][i];
+            }
+        }
+
+        while (atomIndex >= counts[elementIndex]) {
+            atomIndex -= counts[elementIndex];
+            ++elementIndex;
+        }
+
+        try {
+            atoms.emplace_back(elements[elementIndex], cartesianPosition);
+        } catch (const std::runtime_error& e) {
+            std::cerr << "Chyba pri vytváraní atómu: " << e.what() << std::endl;
+        }
+
+        ++atomIndex;
+    }
+
+    file.close();
     return atoms;
 }
 
@@ -82,7 +176,16 @@ Data::Data(Settings& settings) : settings{settings} {
 }
 
 void Data::createParser() {
-    parser = std::make_unique<ParserXYZ>(settings.filePath);
+    std::string fileType = settings.filePath.string().substr(settings.filePath.string().size() - 3);
+    std::transform(fileType.begin(), fileType.end(), fileType.begin(), ::tolower);
+    std::cout <<  fileType << std::endl;
+    if (fileType == "xyz")
+        parser = std::make_unique<ParserXYZ>(settings.filePath);
+    else if (fileType == "car")
+        parser = std::make_unique<ParserCAR>(settings.filePath);
+    else
+        std::cerr << "Unknown file type " << fileType << std::endl;
+
     // F8BT
     // ethylthiol_on_Au221_pulling
     // dithioCAB-Au24_hist
