@@ -66,7 +66,7 @@ class MeshType {
     public:
         virtual void loadBufferData() = 0;
         virtual void draw() = 0;
-        virtual void smoothSurface() = 0;
+        //virtual void smoothSurface() = 0;
         virtual ~MeshType() = default;
         virtual void loadBufferData(const std::vector<glm::mat4>& modelMatrices, const std::vector<glm::vec3>& colors) = 0;
         virtual void drawInstances(size_t instanceCount) = 0;
@@ -75,16 +75,14 @@ class MeshType {
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>  // Normals per vertex
 class Mesh : public MeshType {
     public:
-        std::array<Triangle, MAX_TRIANGLES> triangles;
-        size_t triangleCount = 0;
-
-        std::array<glm::vec3, MAX_VERTICES> vertexPositions;
-        size_t vertexCount = 0;
-
-        std::array<std::array<glm::vec3, MAX_NORMALS>, MAX_VERTICES> normals = {};
+        std::array<unsigned int, 3*MAX_TRIANGLES> indices;
+        std::array<glm::vec3, MAX_VERTICES> vertices;
+        unsigned int triangleCount = 0;
+        unsigned int vertexCount = 0;
 
         GLuint VAO;
         GLuint VBO;
+        GLuint EBO;
 
         GLuint modelMatrixVBO;
         GLuint colorVBO;
@@ -99,19 +97,19 @@ class Mesh : public MeshType {
         void drawInstances(size_t instanceCount);
         void loadBufferData(const std::vector<glm::mat4>& modelMatrices, const std::vector<glm::vec3>& colors);
 
-        void smoothSurface();
+        //void smoothSurface();
     protected:
         bool comparePositions(const glm::vec3& position1, const glm::vec3& position2);
         size_t findVertex(const glm::vec3& position);
         size_t addVertex(const glm::vec3& position);
         size_t findOrAddVertex(const glm::vec3& position);
-        size_t addNormal(const size_t index, const glm::vec3& newNormal);
+        //size_t addNormal(const size_t index, const glm::vec3& newNormal);
         void addTriangle(const std::array<glm::vec3,3>& positions);
-        void addTriangle(const std::array<size_t,3>& positionIndices);
-        void addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices);
+        void addTriangle(const std::array<unsigned int,3>& positionIndices);
+        //void addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices);
 };
 
-class Cube : public Mesh<12,8,3> {
+/*class Cube : public Mesh<12,8,3> {
     public:
         Cube(float size);
 };
@@ -123,14 +121,14 @@ class Icosahedron : public Mesh<20,12,5> {
         void createGeometry(float radius);
     public:
         Icosahedron(float radius);
-};
+};*/
 
-constexpr size_t calculateMaxTriangles(size_t N) {
+/*constexpr size_t calculateMaxTriangles(size_t N) {
     return 20 * N * N;
 }
 constexpr size_t calculateMaxVertices(size_t N) {
     return 12 + (30 * (N-1));
-}
+}*/
 
 class Icosphere : public Mesh<500,500,50> {// Mesh<calculateMaxTriangles(N_SUBDIVISION), calculateMaxVertices(N_SUBDIVISION), 10>
     public:

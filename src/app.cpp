@@ -177,7 +177,7 @@ void Scene::init() {
             }
         }
 
-        mesh->smoothSurface();
+        //mesh->smoothSurface();
         // Load buffer data for each mesh with instance attributes
         mesh->loadBufferData(modelMatrices, colors);
     }

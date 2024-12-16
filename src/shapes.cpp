@@ -29,7 +29,7 @@ size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::getMaxNormals() {
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::draw() {
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
@@ -41,13 +41,16 @@ void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::loadBufferData() {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    std::vector<Vertex> vertexData;
-    for (const Triangle& triangle : triangles) {
-        for (size_t i = 0; i < 3; ++i) {
-            vertexData.emplace_back(vertexPositions[triangle.vertices[i]], normals[triangle.vertices[i]][triangle.normals[i]]);
-        }
-    }
-    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
+
+    // Atribúty pozície a normály
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // position
+    glEnableVertexAttribArray(0);
+
+    // Vytvoríme EBO (element buffer)
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
@@ -58,7 +61,7 @@ void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::loadBufferData() {
     glBindVertexArray(0);
 }
 
-template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
+/*template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::smoothSurface() {
     std::array<std::array<glm::vec3, MAX_NORMALS>, MAX_VERTICES> averagedNormals = {}; // 
 
@@ -81,12 +84,12 @@ void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::smoothSurface() {
     }
 
     normals = averagedNormals;
-}
+}*/
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::drawInstances(size_t instanceCount) {
     glBindVertexArray(VAO);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, triangles.size() * 3, instanceCount);
+    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, instanceCount);
     glBindVertexArray(0);
 }
 
@@ -99,19 +102,19 @@ void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::loadBufferData(const std::v
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    std::vector<Vertex> vertexData;
-    for (const Triangle& triangle : triangles) {
-        for (size_t i = 0; i < 3; ++i) {
-            vertexData.emplace_back(vertexPositions[triangle.vertices[i]], normals[triangle.vertices[i]][triangle.normals[i]]);
-        }
-    }
-    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
 
     // Atribúty pozície a normály
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0); // position
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(1);
+    // normal delete
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    //glEnableVertexAttribArray(1);
+
+    // Vytvoríme EBO (element buffer)
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Nastavenie model matíc pre inštancie
     glGenBuffers(1, &modelMatrixVBO);
@@ -148,10 +151,10 @@ bool Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::comparePositions(const glm:
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::findVertex(const glm::vec3& position) {
     for (size_t i = 0; i < vertexCount; ++i) {
-        if (comparePositions(vertexPositions[i], position))
+        if (comparePositions(vertices[i], position))
             return i;
     }
-    return vertexPositions.size();
+    return vertices.size();
 }
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
@@ -160,7 +163,7 @@ size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addVertex(const glm::vec3
         return vertexCount;
 
     //std::cout << "pridavam vrchol " << vertexCount << " " << position.x << " " << position.y << " " << position.z << " " << std::endl;
-    vertexPositions[vertexCount] = position;
+    vertices[vertexCount] = position;
     return vertexCount++;
 }
 
@@ -173,7 +176,7 @@ size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::findOrAddVertex(const glm
         return index;
 }
 
-template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
+/*template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addNormal(const size_t index, const glm::vec3& newNormal) {
     for (size_t i = 0; i < MAX_NORMALS; ++i) {  //glm::vec3& normal : normals[index]
         if (normals[index][i] == newNormal)
@@ -185,120 +188,48 @@ size_t Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addNormal(const size_t in
         }
     }
     return MAX_NORMALS;
-}
+}*/
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addTriangle(const std::array<glm::vec3,3>& positions) {
-    std::array<size_t, 3> triangleVertices;
-    std::array<size_t, 3> triangleNormals;
-
-    glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
 
     size_t i = 0;
     for (const glm::vec3& position : positions) {
-        size_t index = findVertex(position);
+        // REFACTOR find or add vertex
+        unsigned int index = findVertex(position);
         if (index == MAX_VERTICES)
             index = addVertex(position);
         // TODO if index == MAX_VERTICES snazime sa pridat vrchol nad ramec array
-        size_t normalIndex = addNormal(index, normal);
 
-        triangleVertices[i] = index;
-        triangleNormals[i] = normalIndex;
-        i++;
+        indices[triangleCount*3+i] = index;
+        ++i;
     }
-    triangles[triangleCount] = Triangle(triangleVertices, triangleNormals);
     triangleCount++;
 }
 
 template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
-void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addTriangle(const std::array<size_t,3>& positionIndices) {
-    std::array<glm::vec3,3> positions{ vertexPositions[positionIndices[0]],
-                                        vertexPositions[positionIndices[1]],
-                                        vertexPositions[positionIndices[2]] };
-
-    glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
-
-    std::array<size_t, 3> triangleNormals;
+void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addTriangle(const std::array<unsigned int,3>& positionIndices) {
     size_t i = 0;
-    for (const size_t positionIndex : positionIndices) {
-        size_t normalIndex = addNormal(positionIndex, normal);
-
-        triangleNormals[i] = normalIndex;
-        i++;
+    for (const unsigned int index : positionIndices) {
+        indices[triangleCount*3+i] = index;
+        ++i;
     }
-    triangles[triangleCount] = Triangle(positionIndices, triangleNormals);
     triangleCount++;
 }
 
-// To iste len s dodanym vectorom, nie atribut triedy
-/*void addTriangle(std::vector<Triangle>& triangleList, const std::array<glm::vec3,3>& positions) {
-    glm::vec3 normal = glm::normalize(glm::cross(positions[1] - positions[0], positions[2] - positions[0]));
-    triangleList.emplace_back(positions, normal);
-}*/
-
-template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
+/*template<size_t MAX_TRIANGLES, size_t MAX_VERTICES, size_t MAX_NORMALS>
 void Mesh<MAX_TRIANGLES, MAX_VERTICES, MAX_NORMALS>::addGeometry(const std::span<glm::vec3>& vertices, const std::span<std::array<unsigned int, 3>>& indices) {
     for (const auto& triangle : indices)
         addTriangle({ vertices[triangle[0]], vertices[triangle[1]], vertices[triangle[2]] });
-}
-
-/*float calcSize(Vertex vertex, Vertex vertex2) {
-    return sqrt(pow((vertex.position.x - vertex2.position.x),2)
-            +pow((vertex.position.y - vertex2.position.y),2)
-            +pow((vertex.position.z - vertex2.position.z),2));
-}
-
-void calcTriangles() {
-    for(Triangle& triangle : triangles) {
-        float a = calcSize(triangle.vertices[0], triangle.vertices[1]);
-        float b = calcSize(triangle.vertices[1], triangle.vertices[2]);
-        float c = calcSize(triangle.vertices[0], triangle.vertices[2]);
-        std::cout << a << ", " << b << ", " << c << ", " << std::endl;
-    }
 }*/
 
-//////// CUbe /////////
 
-Cube::Cube(float size) {
-    float halfsize = size / 2;
-
-    std::array<glm::vec3,8> vertices{ 
-        glm::vec3(-halfsize, -halfsize, -halfsize),
-        glm::vec3(-halfsize,  halfsize, -halfsize),
-        glm::vec3( halfsize, -halfsize, -halfsize),
-        glm::vec3( halfsize,  halfsize, -halfsize),
-
-        glm::vec3(-halfsize, -halfsize,  halfsize),
-        glm::vec3(-halfsize,  halfsize,  halfsize),
-        glm::vec3( halfsize, -halfsize,  halfsize),
-        glm::vec3( halfsize,  halfsize,  halfsize)
-    };
-
-    std::array<std::array<unsigned int,3>,12> indices{{
-        {1, 2, 0},
-        {2, 1, 3},
-        {6, 5, 4},
-        {5, 6, 7},
-        {2, 7, 6},
-        {7, 2, 3},
-        {5, 0, 4},
-        {0, 5, 1},
-        {7, 1, 5},
-        {1, 7, 3},
-        {0, 6, 4},
-        {6, 0, 2}
-    }};
-
-    addGeometry(vertices, indices);
-}
-
-Icosahedron::Icosahedron(float radius) {
+Icosphere::Icosphere(size_t subdivision, float radius) : N_SUBDIVISION{subdivision} {
     createGeometry(radius);
-    
-    //calcTriangles();
+    subdivideTriangles(radius);
 }
 
-void Icosahedron::createGeometry(float radius) {
+void Icosphere::createGeometry(float radius) {
     float z, xy;
     float uAngle = -M_PI / 2 - H_ANGLE / 2;  // -126 deg (234 deg = 90 + 2*72 )
     float lAngle = -M_PI / 2;               // -90 deg  (270 deg)
@@ -316,20 +247,14 @@ void Icosahedron::createGeometry(float radius) {
         glm::vec3 lowerFirstPos{xy * cosf(lAngle), xy * sinf(lAngle), -z};
         glm::vec3 lowerSecondPos{xy * cosf(lAngle+H_ANGLE), xy * sinf(lAngle+H_ANGLE), -z};
 
-        addTriangle({ northPos, upperFirstPos, upperSecondPos });
-        addTriangle({ upperFirstPos, lowerFirstPos, upperSecondPos });
-        addTriangle({ upperSecondPos, lowerFirstPos, lowerSecondPos });
-        addTriangle({ lowerFirstPos, southPos, lowerSecondPos });
+        this->addTriangle({ northPos, upperFirstPos, upperSecondPos });
+        this->addTriangle({ upperFirstPos, lowerFirstPos, upperSecondPos });
+        this->addTriangle({ upperSecondPos, lowerFirstPos, lowerSecondPos });
+        this->addTriangle({ lowerFirstPos, southPos, lowerSecondPos });
 
         uAngle += H_ANGLE;
         lAngle += H_ANGLE;
     }
-}
-
-Icosphere::Icosphere(size_t subdivision, float radius) : N_SUBDIVISION{subdivision} {
-    createGeometry(radius);
-    subdivideTriangles(radius);
-    //calcTriangles();
 }
 
 glm::vec3 Icosphere::updateRadius(const glm::vec3& position, const float radius) {
@@ -349,15 +274,14 @@ void Icosphere::subdivideTriangles(float radius) {
     size_t end = this->triangleCount;
     for (size_t t = 0; t < end; t++) {
         //std::cout << t << std::endl;
-        Triangle& triangle = this->triangles[t];
 
-        size_t o0 = triangle.vertices[0];
-        size_t o1 = triangle.vertices[1];
-        size_t o2 = triangle.vertices[2];
+        unsigned int o0 = this->indices[3*t];
+        unsigned int o1 = this->indices[3*t+1];
+        unsigned int o2 = this->indices[3*t+2];
 
-        glm::vec3 o0p = this->vertexPositions[o0];
-        glm::vec3 o1p = this->vertexPositions[o1];
-        glm::vec3 o2p = this->vertexPositions[o2];
+        glm::vec3 o0p = this->vertices[o0];
+        glm::vec3 o1p = this->vertices[o1];
+        glm::vec3 o2p = this->vertices[o2];
 
         glm::vec3 f = o0p;
         glm::vec3 l = o1p;
@@ -368,13 +292,8 @@ void Icosphere::subdivideTriangles(float radius) {
             if (d == N_SUBDIVISION) {
                 glm::vec3 p1 = updateRadius(f + (1.0f / d) * (l - f), radius);
                 glm::vec3 p2 = updateRadius(f + (1.0f / d) * (u - f), radius);
-                triangle.vertices[1] = this->findOrAddVertex(updateRadius(p1, radius));
-                triangle.vertices[2] = this->findOrAddVertex(updateRadius(p2, radius));
-                
-                glm::vec3 normal = glm::normalize(glm::cross(p1 - f, p2 - f));                        
-                this->normals[o0][triangle.normals[0]] = normal;
-                triangle.normals[1] = this->addNormal(triangle.vertices[1], normal);
-                triangle.normals[2] = this->addNormal(triangle.vertices[2], normal);
+                this->indices[3*t+1] = this->findOrAddVertex(updateRadius(p1, radius));
+                this->indices[3*t+2] = this->findOrAddVertex(updateRadius(p2, radius));
             }
             else {
                 glm::vec3 p1 = f + (1.0f / d) * (l - f);
@@ -405,33 +324,5 @@ void Icosphere::subdivideTriangles(float radius) {
             f = uf;
             l = ul;
         }
-    }
-}
-
-void Icosphere::createGeometry(float radius) {
-    float z, xy;
-    float uAngle = -M_PI / 2 - H_ANGLE / 2;  // -126 deg (234 deg = 90 + 2*72 )
-    float lAngle = -M_PI / 2;               // -90 deg  (270 deg)
-
-    glm::vec3 northPos{0,0,radius};
-    glm::vec3 southPos{0,0,-radius};
-
-    for(int i = 1; i <= 5; ++i) {
-        z  = radius * sinf(V_ANGLE);
-        xy = radius * cosf(V_ANGLE);
-
-        glm::vec3 upperFirstPos{xy * cosf(uAngle), xy * sinf(uAngle), z};
-        glm::vec3 upperSecondPos{xy * cosf(uAngle+H_ANGLE), xy * sinf(uAngle+H_ANGLE), z};
-
-        glm::vec3 lowerFirstPos{xy * cosf(lAngle), xy * sinf(lAngle), -z};
-        glm::vec3 lowerSecondPos{xy * cosf(lAngle+H_ANGLE), xy * sinf(lAngle+H_ANGLE), -z};
-
-        this->addTriangle({ northPos, upperFirstPos, upperSecondPos });
-        this->addTriangle({ upperFirstPos, lowerFirstPos, upperSecondPos });
-        this->addTriangle({ upperSecondPos, lowerFirstPos, lowerSecondPos });
-        this->addTriangle({ lowerFirstPos, southPos, lowerSecondPos });
-
-        uAngle += H_ANGLE;
-        lAngle += H_ANGLE;
     }
 }
